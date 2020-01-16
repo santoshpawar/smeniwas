@@ -1,0 +1,17 @@
+.env
+niwas.zip
+vendor/
+test/
+storage/
+/bootstrap/compiled.php
+/node_modules
+/.idea
+storage/
+composer.phar
+.env
+.DS_Store
+Thumbs.db
+docs/~$was_Screen_flow_webplatform_april15.docx
+docs/~$Master_Questions_list_niwas.xlsx
+docs/~$oductwise_QuestionsSelection Matrix_new.docxzz
+resources/views/app_header.blade.php

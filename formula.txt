@@ -1,0 +1,78 @@
+======================Gross profit / Other Fixed Expenses=============
+CCC=Gross profit / Other Fixed Expenses 
+CCC= EE / ( EE - LL + OO )
+
+================Contribution/Other Fixed Expenses======================NEED TO CHANGE
+( EE - FF ) / ( EE - FF - LL )
+
+
+
+========
+
+CC=Total Income(AA+BB) 
+
+Gross Profit(EE)=CC - DD  
+II=
+EE=Gross Profit(EE)
+FF=Other Direct Manufacturing Costs
+GG=Salary Cost
+HH=Business Development / Marketing / Advertising / Distribution / Commission
+KK=Other Admin and Fixed Costs
+AA=Net Sales (After Excise, Octroi, Service Tax etc)
+BB=Other Operating / Related Income
+DD=Cost of Raw Material
+OO=Interest & Finance Charges
+
+
+======================================
+( RR / CC ) * 100
+
+
+=======================ROE============
+( RR / ( ( C + D + ( @ - 1 C + @ - 1 D ) ) / 2 ) ) * 100....not workedfor 18-19
+
+RR * 2 * 100 / ( C + D + ( @ - 1 C + @ - 1 D ) )=========roe
+
+(@ - 1 C)=-225.4
+(@ - 1 D)=0
+C + D = 0
+
+RR=PAT=205
+C=NET WORTH (A+B) =-148
+A=Total Share Capital=2
+B=Total Reserves=-150
+D=Loans/Preference shares from promoters both short term and long term=0
+
+( 202 / ( -148 + (-225.4 + 3 ) ) / 2) * 100)=-11409.01
+
+202/
+
+( RR /  C + D + ( @ - 1 C + @ - 1 D )  / 2 ) * 100.....not worked
+
+ @ - 1 C   ....Worked
+
+
+
+
+
+( V1 -W1 -Y1 )
+RR=PAT
+C=NET WORTH
+D= Loans/Preference shares from promoters both short term and long term
+
+( Z - V1 - W1 -Y1 ) / N
+( 1400 - 335 - 600 - 0)
+ Z -( V1 -W1 -Y1 )
+Z=Total Current Assets = ( U + V1 + V2 + W1 + W2 + X + Y )...ok
+V1=Receivables from related party = ( V11 + V12 )...OK  335
+W1=Advances to related Party...600..OK
+Y1=Capital Advances...0
+N=Total Current Liabilities=J + K + LM + L + M...1800..OK
+V11=Receivables < 180 days from related party...300..OK
+V12=Receivables > 180 days from related party...35..OK
+ J=Short Term Loans (incl bank Borrowings)
+ K=Trade Payables
+ LM=Short Term Provisions
+ L=Current Portion of Long Term Debt
+ M=Other Current Liabilities
+

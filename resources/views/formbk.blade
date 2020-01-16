@@ -1,0 +1,187 @@
+<link href='http://fonts.googleapis.com/css?family=Roboto:400,700,300|Material+Icons' rel='stylesheet' type='text/css'>
+<style>
+    .sidebar .sidebar-wrapper, .off-canvas-sidebar .sidebar-wrapper {
+        position: relative;
+        height: calc(100vh - 75px);
+        overflow: auto;
+        width: 260px;
+        z-index: 4;
+    }
+    .btn.btn-success{
+        background-color: transparent;
+        color: grey
+    }
+    .sidebar .nav{
+        margin-top: 20px;
+    }
+    .nav {
+        padding-left: 0;
+        margin-bottom: 0;
+        list-style: none;
+    }
+    ol, ul {
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+    .sidebar .nav li > a{
+        margin: 25px 12px;
+        border-radius: 3px;
+        color: rgb(94, 76, 192);
+        font-weight: bold;
+    }
+    .dropdownjs > ul > li {
+        list-style: none;
+        padding: 10px 20px;
+        color: #4F4E4E;
+        font-size: 15px;
+        font-weight: 500;
+    }
+    .sidebar .logo, .off-canvas-sidebar .logo {
+        position: relative;
+        padding: 15px 15px;
+        z-index: 4;
+    }
+    .nav>li>a {
+        position: relative;
+        display: block;
+        padding: 10px 15px;
+    }
+    .material-icons {
+        vertical-align: middle;
+        font-size: 17px;
+        top: -1px;
+        position: relative;
+    }
+    .btn{
+        text-align: left;
+    }
+</style>
+
+<!-- Tab panes -->
+@if($sub_view_type == "loans._choose_loan")
+@else
+<section class="content_style2">
+</section>
+@endif
+{{--@if ($errors->any())--}}
+{{--<div class="alert alert-danger">--}}
+{{--<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>--}}
+{{--<ul class="alert alert-danger">--}}
+{{--@foreach ($errors->all() as $error)--}}
+{{--<li>{{ $error }}</li>--}}
+{{--@endforeach--}}
+{{--</ul>--}}
+{{--</div>--}}
+{{--@endif--}}
+<section>
+    <div class="container-fluid">
+        <div class="row">
+            @if($sub_view_type == "loans._choose_loan")
+            <div id="tab" class="btn-group leftside_tab" role = "group">
+
+                @if($sub_view_type == "loans._choose_loan")
+                @include('loans.msme')
+
+                @else
+                
+                @if(Auth::user()->isAnalyst() || Auth::user()->isBankUser() || Auth::user()->isAdmin())
+                <a style="width:100%;" href="{{{URL::to('loans/profile-loan-details/'.$loanType.'/'.$endUseList.'/'.$amount.'/'.$loanTenure.'/'.$loanId)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans._profile_loan_details" ? 'active' : ''}}}"  role="button">Profile & Loan Details anal</a>
+                @endif
+
+                <a style="width:100%;" href="{{{URL::to('loans/company-background/'.$loanType.'/'.$endUseList.'/'.$amount.'/'.$loanTenure.'/'.$loanId)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans._company_background" ? 'active' : ''}}} " role="button">Background</a>
+                <a style="width:100%;" href="{{{URL::to('loans/promoter/'.$loanType.'/'.$endUseList.'/'.$amount.'/'.$loanTenure.'/'.$loanId)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans._promoter" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'promoter_details')}}}"  role="button">Promoter Details</a>
+                <a style="width:100%;" href="{{{URL::to('loans/financial/'.$loanType.'/'.$endUseList.'/'.$amount.'/'.$loanTenure.'/'.$loanId)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans._financial" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'financials')}}}"  role="button">Business Financials</a>
+
+
+                @if($validLoanHelper->securityTab($loanId,$loanType))
+                <a style="width:100%;" href="{{{URL::to('loans/application/'.$loanType.'/'.$endUseList.'/'.$amount.'/'.$loanTenure.'/'.$loanId)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans._application" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'security_details')}}}" role="button">Security Details</a>
+                @endif
+                <a style="width:100%;" href="{{{URL::to('loans/uploaddoc/'.$loanType.'/'.$endUseList.'/'.$amount.'/'.$loanTenure.'/'.$loanId)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans._upload_doc" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'upload_documents')}}}" role="button">Upload Documents</a>
+                @endif
+                @if(Auth::user()->isAnalyst() || Auth::user()->isAdmin() || Auth::user()->isBankUser())
+                <a id="lnkBanking" class="btn btn-large btn-success btn-space lefttabbtn {{{(isset($groupType) && $groupType == Config::get('constants.CONST_FIN_GROUP_TYPE_GS')) ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'google_search')}}}" href="{{{ URL::to('/loans/analyst-google-search/' . $loanId)}}}"><span class="text">Google Search</span></a> </li>
+                <a id="lnkBanking" class="btn btn-large btn-success btn-space lefttabbtn {{{(isset($groupType) && $groupType == Config::get('constants.CONST_FIN_GROUP_TYPE_BS')) ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'input_blsheet')}}}" href="{{{ URL::to('/loans/analyst-balance-sheet/' . $loanId)}}}"><span class="text">Input Balance Sheet</span></a> </li>
+                <a id="lnkBanking" class="btn btn-large btn-success btn-space lefttabbtn {{{(isset($groupType) && $groupType == Config::get('constants.CONST_FIN_GROUP_TYPE_PL')) ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'input_p&l')}}}" href="{{{ URL::to('/loans/analyst-profit-loss/' . $loanId)}}}"><span class="text">Input P & L</span></a></li>
+                <a id="lnkBanking" class="btn btn-large btn-success btn-space lefttabbtn {{{(isset($groupType) && $groupType == Config::get('constants.CONST_FIN_GROUP_TYPE_CF')) ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'cashflow')}}}" href="{{{ URL::to('/loans/analyst-cashflow/' . $loanId)}}}"><span class="text">Cashflow</span></a></li>
+                <a class="btn btn-large btn-success btn-space lefttabbtn {{{(isset($groupType) && $groupType == Config::get('constants.CONST_FIN_GROUP_TYPE_RATIO')) ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'calculated_ratios')}}}" href="{{{ URL::to('/loans/analyst-calculated-ratios/' . $loanId)}}}"><span class="text">Calculated Ratios</span></a></li>
+                <a class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans.financial._analyst_credit_model" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'credit_model')}}}" href="{{{ URL::to('/loans/credit-model/' . $loanId)}}}" role="button"><span class="text">Credit Model</span></a></li>
+                @if($validLoanHelper->collateralModel($loanId))
+                <a class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans.financial._analyst_collateral_model" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'collateral_model')}}}" href="{{{ URL::to('/loans/collateral-model/' . $loanId)}}}" role="button"><span class="text">Collateral Model</span></a></li>
+                @endif
+                @endif
+                @if(Auth::user()->isBankUser())
+                <a style="width:100%;" href="{{{URL::to('loans/bank-approval/'.$loanType.'/'.$endUseList.'/'.$amount.'/'.$loanTenure.'/'.$loanId)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans.bank._bank_approval" ? 'active' : ''}}} " role="button">Bank Approval</a>
+                @endif
+            </div>
+
+            @else
+            {{-- For show from Dashboard view --}}
+
+            <div class="col-md-2">
+                <div id="tab" class="btn-group leftside_tab" role = "group">
+                    @if($sub_view_type == "loans._choose_loan")
+                    @else
+                    @if(isset($companySharePledged))
+                    <?php  $sideUrl=$endUseList.'/'.$loanType.'/'.$amount.'/'.$loanTenure.'/'.$companySharePledged.'/'.$bscNscCode.'/'.$loanId; ?>
+                    @else
+                    <?php   $sideUrl=$endUseList.'/'.$loanType.'/'.$amount.'/'.$loanTenure.'/'.$loanId;  ?>
+                    @endif
+                    @if(Auth::user()->isAnalyst() || Auth::user()->isBankUser() || Auth::user()->isAdmin())
+                    <a style="width:100%;" href="{{{URL::to('loans/profile-loan-details/'.$sideUrl)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans._profile_loan_details" ? 'active' : ''}}}"  role="button">Profile & Loan Details</a>
+                    @endif
+                    <a style="width:100%;" href="{{{URL::to('loans/company-background/'.$sideUrl)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans._company_background" ? 'active' : ''}}} " role="button">Background</a>
+                    <a style="width:100%;" href="{{{URL::to('loans/promoter/'.$sideUrl)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans._promoter" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'promoter_details')}}}"  role="button">Promoter Details</a>
+                    <a style="width:100%;" href="{{{URL::to('loans/financial/'.$sideUrl)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans._financial" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'financials')}}}"  role="button">Business Financials</a>
+                    @if(isset($companySharePledged))
+                    <a style="width:100%;" href="{{{URL::to('loans/application/'.$sideUrl)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans._application_LAS" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'security_details')}}}" role="button">Security Details</a>
+                    @else
+                    <a style="width:100%;" href="{{{URL::to('loans/application/'.$sideUrl)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans._application" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'security_details')}}}" role="button">Security Details</a>
+                    @endif
+                    <a style="width:100%;" href="{{{URL::to('loans/uploaddoc/'.$sideUrl)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans._upload_doc" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'upload_documents')}}}" role="button">Upload Documents</a>
+                    @endif
+                    @if(Auth::user()->isAnalyst() || Auth::user()->isAdmin() || Auth::user()->isBankUser())
+                    <a id="lnkBanking" class="btn btn-large btn-success btn-space lefttabbtn {{{(isset($groupType) && $groupType == Config::get('constants.CONST_FIN_GROUP_TYPE_GS')) ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'google_search')}}}" href="{{{ URL::to('/loans/analyst-google-search/' . $loanId)}}}"><span class="text">Google Search</span></a> </li>
+                    <a id="lnkBanking" class="btn btn-large btn-success btn-space lefttabbtn {{{(isset($groupType) && $groupType == Config::get('constants.CONST_FIN_GROUP_TYPE_BS')) ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'input_blsheet')}}}" href="{{{ URL::to('/loans/analyst-balance-sheet/' . $loanId)}}}"><span class="text">Input Balance Sheet</span></a> </li>
+                    <a id="lnkBanking" class="btn btn-large btn-success btn-space lefttabbtn {{{(isset($groupType) && $groupType == Config::get('constants.CONST_FIN_GROUP_TYPE_PL')) ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'input_p&l')}}}" href="{{{ URL::to('/loans/analyst-profit-loss/' . $loanId)}}}"><span class="text">Input P & L</span></a></li>
+                    <a id="lnkBanking" class="btn btn-large btn-success btn-space lefttabbtn {{{(isset($groupType) && $groupType == Config::get('constants.CONST_FIN_GROUP_TYPE_CF')) ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'cashflow')}}}" href="{{{ URL::to('/loans/analyst-cashflow/' . $loanId)}}}"><span class="text">Cashflow</span></a></li>
+                    <a class="btn btn-large btn-success btn-space lefttabbtn {{{(isset($groupType) && $groupType == Config::get('constants.CONST_FIN_GROUP_TYPE_RATIO')) ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'calculated_ratios')}}}" href="{{{ URL::to('/loans/analyst-calculated-ratios/' . $loanId)}}}"><span class="text">Calculated Ratios</span></a></li>
+                    @if($loan->companySharePledged!='')
+                    <a class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans.financial._analyst_credit_model" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'credit_model')}}}" href="{{{ URL::to('/loans/liquidity-model/' . $loanId)}}}" role="button"><span class="text">Liquidity Model</span></a></li>
+                    @else
+                    <a class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans.financial._analyst_credit_model" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'credit_model')}}}" href="{{{ URL::to('/loans/credit-model/' . $loanId)}}}" role="button"><span class="text">Credit Model</span></a></li>
+                    @endif
+                    @if($validLoanHelper->collateralModel($loanId))
+                    <a class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans.financial._analyst_collateral_model" ? 'active' : ''}}} {{{$validLoanHelper->CurrentTabStatus($loanId,'collateral_model')}}}" href="{{{ URL::to('/loans/collateral-model/' . $loanId)}}}" role="button"><span class="text">Collateral Model</span></a></li>
+                    @endif
+                    @endif
+                    @if(Auth::user()->isBankUser())
+                    <a style="width:100%;" href="{{{URL::to('loans/bank-approval/'.$loanType.'/'.$endUseList.'/'.$amount.'/'.$loanTenure.'/'.$loanId)}}}" class="btn btn-large btn-success btn-space lefttabbtn {{{$sub_view_type == "loans.bank._bank_approval" ? 'active' : ''}}} " role="button">Bank Approval</a>
+                    @endif
+                </div>
+            </div>
+            @endif
+            <div class="col">
+                <?php
+                if(!isset($loanId)){
+                    $loanId = "''";
+                }
+                ?>
+                @include($sub_view_type)
+            </div>
+        </div>
+    </div>
+</section>
+
+@section('footer')
+<script>
+    $('#tab').find('a').each(function() {
+        if($(this).hasClass('active')){
+            $(this).removeClass('disabled');
+        }
+    });
+        //        $('#loan_product').select2({
+        //        allowClear: true,
+        //        placeholder: "Select Loan Product Type"
+        //        });
+    </script>
+    @append

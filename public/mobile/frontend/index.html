@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+    <title></title>
+
+    <style>
+      .angular-google-map-container {
+          width: 100%;
+          height: 504px;
+      }
+         .ng-touched.ng-invalid-required{
+	        border-color: red;
+            border-width: 2px;
+            border-style: double;
+         }
+        .ng-submitted input.ng-invalid{
+            border-color: red;
+            border-width: 2px;
+            border-style: double;
+       }
+       
+        .input-help {
+          position:absolute;
+          z-index: 100;
+          top: 61px;
+          right: 0;
+          width: 200px;
+          padding: 10px;
+          background: #fefefe;
+          font-size: .875em;
+          border-radius: 5px;
+          box-shadow: 0 1px 3px #aaa;
+          border: 1px solid red;
+          opacity: 0.9;
+     }
+    </style>
+
+    <link href="lib/ionic/css/ionic.css" rel="stylesheet">
+    <script src="lib/ionic/js/ionic.bundle.js"></script>
+    <script src="lib/ionic/js/ui-bootstrap-tpls-0.12.1.min.js"></script> 
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script> 
+    <link href="http://code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/angular-messages.js"></script>  
+	
+	<script src="js/ng-file-upload-shim.js"></script> 
+    <script src="js/ng-file-upload.js"></script> 
+    <!-- your app's js -->     
+    <script src="js/app.js"></script>
+
+</head>
+  <body ng-app="SMENiwasFosApp" animation="slide-left-right-ios7" ng-controller="MainCtrl">
+    
+  <div>
+        <ion-nav-bar class="bar-stable">
+         <!--ion-nav-back-button class="button-icon icon ion-ios7-arrow-back">Back</ion-nav-back-button-->
+            
+        </ion-nav-bar>
+        <ion-nav-view>
+        
+        </ion-nav-view>
+  </div>
+
+<script id="page1.html" type="text/ng-template">
+<ion-view title="Welcome">
+    <ion-content padding="true" scroll="false" class="has-header">
+        <div class="spacer" style="width: 300px; height: 90px;"></div>
+        <!--h1> SMENiwas FOS </h1-->
+        <div style="padding-left: 0px;"><img src='img/smeniwas_logo.jpg' class="img-responsive" style="margin:0 auto;"> </img></div>
+        <div class="spacer" style="width: 300px; height: 112px;"></div>
+        <a class="button button-balanced button-block" ng-click="openDialog('sm');">Login</a>        
+    </ion-content>
+</ion-view></script>
+
+<!-- <form name="myForm" method="POST" enctype="multipart/form-data"> -->
+<!--form action="#" enctype="multipart/form-data" ng-submit="saveData()" ng-controller="MainCtrl"-->
+<form action="http://smeniwas.com/mobile/saveData.php" method="POST" enctype="multipart/form-data">
+<script id="page2.html" type="text/ng-template">
+    
+<ion-view title='<img class="title-image img-responsive" src="img/smeniwas_logo.jpg" style="display: inline; width:175px"/>'>
+     <ion-content padding="true" class="has-header">
+        <h4>Name of Firm</h4>
+         <!--form name="form2"-->
+            <label class="item item-input" name="FirmName" id="page2_firmname">
+                <input type="text" placeholder="Enter firm name" class="form-control" ng-model="formData.FirmName" />
+            </label>
+        <h4>Type of legal Entity</h4>
+       
+            <label class="item item-select" name="EntityType" id="page2_EntityType">
+            
+                <select name="entitytype" ng-model="formData.EntityType">    
+                    <option value="">Select entity type</option>
+                    <option name="Entity" ng-repeat= "entity in listdata | filter: {type: 'ENTITY_TYPE'}" value="{{ entity.value }}">{{ entity.name }}</option>
+               </select></br>
+                 
+            </label>
+             
+        <h4>Type of Business</h4>
+     
+            <label class="item item-select" name="BusinessType" id="page2_BusinessType">
+                
+                <select name="businesstype" ng-model="formData.BusinessType">
+                  <option value="">Select business type</option>
+                  <option value="Manufacturing">Manufacturing</option>
+                  <option value="B2B">Services B2B</option>
+                  <option value="B2C">Services B2C</option>
+                  <option value="trading">Trading</option>
+                </select>
+            </label>
+     
+        <h4>Key product /service</h4>
+            <label class="item item-input" name="Product/Service" id="page2_KeyProduct">
+                <input type="text" class="form-control" placeholder="Give brief description" name="KeyProduct" ng-model="formData.KeyProduct"/>
+            </label>
+        
+            <div class="spacer" style="width: 300px; height: 26px;"></div>
+		
+			<button class="btn btn-primary pull-left" onclick="window.location.href='#/page1'">Back</button>
+            <button type="submit" class="btn btn-primary pull-right" ng-click="ValidateFields_page2();">Next</button>
+      
+    </ion-content>
+</ion-view></script>
+      
+<script id="page3.html" type="text/ng-template">
+<ion-view title='<img class="title-image img-responsive" src="img/smeniwas_logo.jpg" style="display: inline; width:175px"/>'>
+    <ion-content padding="true" class="has-header">
+        <h4>Latest Audited Turnover</h4>
+        <!--form name="form3" novalidate ng-submit="saveData()" method="POST"-->
+            <label class="item item-input" name="AuditedTurnover" id="page3_AuditedTurnover">
+                <input type="number" class="form-control" placeholder="(Rs. In Lacs)" name="formData.AuditedTurnover" ng-model="formData.AuditedTurnover">
+            </label>
+            
+          <h4>PAN No. of Firm</h4>
+            <label class="item item-input" name="FirmPan" id="page3_FirmPan">
+                <input type="text" class="form-control" placeholder="Enter PAN No. of firm" name="FirmPan" ng-model="formData.FirmPan">
+            </label>
+            
+         <h4>Firm Registration No.</h4>
+            <label class="item item-input" name="FirmRegNo" id="page3_FirmRegNo">
+                <input type="text" class="form-control" placeholder="Enter firm registration no." name="FirmRegNo" ng-model="formData.FirmRegNo">
+            </label>
+
+         <h4>Name of Owner/Director</h4>
+            <label class="item item-input" name="OwnerName" id="page3_OwnerName">
+                <input type="text" class="form-control" placeholder="Enter name" name="OwnerName" id="ownerName" ng-model="formData.OwnerName">
+            </label>
+             <div>
+        	  <p>Name should be Unique.</p>
+           </div>
+        <div class="spacer" style="width: 320px; height: 31px;"></div>
+        <button class="btn btn-primary pull-left" onclick="window.location.href='#/page2'">Back</button>
+        <button type="submit" class="btn btn-primary pull-right" ng-click="ValidateFields_page3();">Next</button>
+        <!--a href="#/page4" class="button button-calm button-block" ng-disabled="form3.$invalid">Continue</a-->
+       <!--/form-->
+    </ion-content>
+</ion-view></script>
+      
+<script id="page4.html" type="text/ng-template">
+<ion-view title='<img class="title-image img-responsive" src="img/smeniwas_logo.jpg" style="display: inline; width:175px"/>'>
+    <ion-content padding="true" class="has-header">
+        <h4>Promoters Email Id</h4>
+		  <form name="form4" novalidate>
+            <label class="item item-input" name="PromoterEmail" id="page4_Email">
+                <input type="email" class="form-control" placeholder="Enter Email" name="email" id="email" ng-model="formData.Email"/>   
+            </label>
+            <div class="input-help" ng-show="(form4.$submitted && form4.email.$invalid) || (form4.email.$touched && form4.email.$invalid)">
+        	  <p ng-show="form4.email.$error.required">This field is required</p>
+              <p ng-show="form4.email.$error.email">Enter a valid email<p>
+           </div>
+		   </form>
+
+        <h4>Address</h4>
+            <label class="item item-input" name="Address" id="page4_Address">
+              <textarea class="form-control" placeholder="Adress" name="address" ng-model="formData.Address"> </textarea>
+            </label>
+        
+        <h4>City</h4>
+            <label class="item item-select" name="City" id="page4_City">
+        
+                <select ng-model="formData.City" ng-change="GetCityValue()">
+                  <option value="">Select city</option>
+                  <option ng-repeat= "city in listdata | filter: {type: 'CITY'}" value="{{ city.value }}">{{ city.name }}</option>
+                </select>
+            </label>
+			
+		<div id="MainCity" style="display: none;">
+			<h4>City Name</h4>
+			<label>
+				<input type="text" placeholder="Enter city name" class="form-control" ng-model="formData.City">
+			</label>
+		</div>
+       
+        <h4>State</h4>
+            <label class="item item-select" name="State" id="page4_State">
+               
+                <select name="selectState" ng-model="formData.State">
+                     <option value="">Select state</option>
+                     <option ng-repeat= "state in listdata | filter: {type: 'STATE'}" value="{{ state.value }}">{{ state.name }}</option>
+                </select>
+            </label>
+            <div class="spacer" style="width: 300px; height: 32px;"></div>
+              <button class="btn btn-primary pull-left" onclick="window.location.href='#/page3'">Back</button>
+             <button type="submit" class="btn btn-primary pull-right" ng-click="ValidateFields_page4();">Next</button>
+            <!--a href="#/page5" class="button button-calm button-block" onclick="window.location.href='#/page5'">Continue</a-->
+       <!--/form-->
+    </ion-content>
+</ion-view></script>
+      
+<script id="page5.html" type="text/ng-template">
+<ion-view title='<img class="title-image img-responsive" src="img/smeniwas_logo.jpg" style="display: inline; width:175px"/>'>
+    <ion-content padding="true" class="has-header">
+        <h4>Pincode</h4>
+        <!--form name="form5" novalidate ng-submit="saveData()" method="POST"-->
+            <label class="item item-input" name="Pincode" id="page5_Pincode">
+                <input type="number" class="form-control" placeholder="Enter pincode" name="pincode" ng-model="formData.Pincode">
+            </label>
+       
+        <h4>Contact No. of Promoter/Owner</h4>
+       
+            <label class="item item-input" name="Contact" id="page5_Contact">
+                <input type="number" class="form-control" placeholder="Enter contact number" name="contact" ng-model="formData.Contact">
+            </label>
+     
+        <h4>CIBIL Score</h4>
+    
+            <label class="item item-input" name="CibilScore" id="page5_CibilScore">
+                <input type="number" class="form-control" placeholder="Enter CIBIL Score" name="cibilScore" ng-model="formData.CibilScore">
+            </label>
+      
+        <h4>Major outstanding loans promoter</h4>
+          <div style= "border: 2px solid gray; padding: 10px;">
+		     <h4>Name of Lender</h4>
+				<label class="item item-input" id="page5_LenderName">
+					<input type="text" placeholder="Enter lender name" name="LenderName" ng-model="formData.LenderName">
+				</label>
+			<h4>Amount Outstanding</h4>
+				<label class="item item-input" id="page5_OutstandingAmt">
+					<input type="number" placeholder="Outstanding Values(Rs. In Lacs)" name="OutstandingAmt" ng-model="formData.OutstandingAmt">
+				</label>
+			<h4>Monthly EMI</h4>
+				<label class="item item-input" id="page5_MonthlyEmi">
+					<input type="number" placeholder="Monthly EMI (Rs. In Lacs)" name="MonthlyEmi" ng-model="formData.MonthlyEmi">
+				</label>
+			<h4>Total Liability</h4>
+				<label class="item item-input" id="page5_Liability">
+					<input type="number" placeholder="Total Liability" name="Liability" ng-model="formData.Liability">
+				</label>
+         </div>
+        <div class="spacer" style="width: 320px; height: 31px;"></div>
+		 <button class="btn btn-primary pull-left" onclick="window.location.href='#/page4'">Back</button>
+        <button type="submit" class="btn btn-primary pull-right" ng-click="ValidateFields_page5();">Next</button>
+      
+    </ion-content>
+</ion-view></script>
+      
+<script id="page6.html" type="text/ng-template">
+<ion-view title='<img class="title-image img-responsive" src="img/smeniwas_logo.jpg" style="display: inline; width:175px"/>'>
+    <ion-content padding="true" class="has-header">
+        <h4>Education/professional degree</h4>
+        
+            <label class="item item-select" name="PromoterDegree" id="page6_Degree">
+                <select name="selectDegree" ng-model="formData.Degree">
+                    <option value="">Select degree</option>
+                    <option ng-repeat= "degree in listdata | filter: {type: 'DEGREE_TYPE'}" value="{{ degree.value }}">{{ degree.name }}</option>
+                </select>
+            </label>
+        
+        <h4>Promoters are</h4>
+         <div id="checkRadioButton1">
+            <div ng-repeat="item in listdata | filter: {type: 'PROMOTER_GENERATION_TYPE'}">
+               <input type="radio" name="test" ng-model="formData.PromoType" ng-value="item.name">{{ item.name }}
+           </div>
+		 </div>
+        <!--ion-radio name= "test" ng-repeat="item in listdata | filter: {type: 'PROMOTER_GENERATION_TYPE'}" ng-value="item.name" ng-model="formData.PromoType">{{ item.name }}</ion-radio-->
+              
+        <h4>Number of independent families</h4>
+		 <div id="checkRadioButton2">
+           <label><input type="radio" name="test1" ng-model="formData.Independent" value="1"> 1</label><br>
+           <label><input type="radio" name="test1" ng-model="formData.Independent" value="2"> 2 to 4</label><br>
+           <label><input type="radio" name="test1" ng-model="formData.Independent" value="3"> greater than 4</label>
+        </div>
+      
+        <h4>Assets owned by Promoters</h4>
+        
+         <ion-list>
+                <ion-item ng-click="OpenFirstDiv()" id="list1">+ <u>Vehicles Owned (In Lacs)</u></ion-item>
+				   <div id="page6_OwnedVehicle" style="display: none;">
+                        <label class="item item-input">
+                          <span class="input-label">Vehicles Owned</span>
+                            <select name="OwnedVehicle" ng-model="formData.OwnedVehicle" style="margin-bottom: 15px; padding: 10px 15px">
+                                  <option value="">Select your option</option>
+                                  <option value="None">None</option>
+                                  <option value="1">1</option>
+                                  <option value="2 to 4">2 to 4</option>
+                                  <option value="Greater than 4">Greater than 4</option>
+                             </select>
+                        </label>
+						 <label class="item item-input" id="page6_MarketValue" style="margin-bottom: 7px;">
+								 <span class="input-label">Market Value</span>
+								 <input type="number" placeholder="(Rs. In Lacs)" name="MarketValue" ng-model="formData.MarketValue">
+						</label>
+					</div>
+                <ion-item ng-click="OpenSecondDiv()" id="list2">+ <u>Properties Owned (In Lacs)</u></ion-item>
+                    <label class="item item-input" id="page6_OwnedProperty" style="display: none;">
+                      <span class="input-label">Properties Owned</span>
+                        <select name="OwnedProperty" ng-model="formData.OwnedProperty" style="margin-bottom: 15px; padding: 10px 15px">
+                              <option value="">Select your option</option>
+                              <option value="None">None</option>
+                              <option value="1">1</option>
+                              <option value="2">2</option>
+                              <option value="3">3</option>
+                              <option value="Greater than 3">Greater than 3</option>
+                         </select>
+                    </label>
+            </ion-list>
+      
+        <div class="spacer" style="width: 300px; height: 31px;"></div>
+        <!--button class="btn btn-primary pull-left" onclick="window.location.href='#/page5'">Back</button-->
+           <a class="button BackBtn" href="#/page5">Back</a>
+        <button type="submit" class="btn btn-primary pull-right" ng-click="ValidateFields_page6();">Next</button>
+     
+    </ion-content>
+</ion-view></script>
+      
+<script id="page7.html" type="text/ng-template">
+<ion-view title='<img class="title-image img-responsive" src="img/smeniwas_logo.jpg" style="display: inline; width:175px"/>'>
+    <ion-content padding="true" class="has-header">
+        
+        <!--form name="form7" novalidate ng-submit="saveData()" method="POST"-->
+      
+         <h4>Nature of Customers</h4>
+        
+          <label class="item item-select" name="CustomerNature" id="page7_CustomerNature">
+                <select name="customerNature" ng-model="formData.CustomerNature">
+                  <option value="">Select your option</option>
+                  <option value="Manufacturing">Manufacturing</option>
+                  <option value="B2B">Services B2B</option>
+                  <option value="B2C">Services B2C</option>
+                  <option value="trading">Trading</option>
+                </select>
+          </label>
+       
+        <h4>Office Premise Detail</h4>
+           <div id="checkOP">
+			   <label><input type="radio" name="office" ng-model="formData.OfficePremise" ng-click="OfficeOwned()" value="Owned"> Owned</label>
+			   <label><input type="radio" name="office" ng-model="formData.OfficePremise" ng-click="OfficeRented()" value="Rented"> Rented</label>
+           </div>
+           
+			<label class="item item-input" id="OfficePremiseOwned" style="display: none;">
+                <input type="number" placeholder="Approx owned value (Rs. In Lacs)" class="form-control" name="officePremiseOwned" ng-model="formData.OfficePremiseOwned">
+            </label>
+            <label class="item item-input" id="OfficePremiseRented" style="display: none;">
+                <input type="number" placeholder="Monthly Rent Paid (Rs. In Lacs)" class="form-control" name="officePremiseRented" ng-model="formData.OfficePremiseRented">
+            </label>
+        
+        <h4>Manufacturing Premise Detail</h4>
+          <div id="checkMP">
+			   <label><input type="radio" name="manufacture" ng-model="ManufacturePremise" ng-click="manufactureOwned()" value="Owned"> Owned</label>
+			   <label><input type="radio" name="manufacture" ng-model="ManufacturePremise" ng-click="manufactureLeased()" value="Leased"> Leased</label>
+          </div>
+            <!--ion-radio ng-model="manufacturePremise" ng-value="owned" ng-click="manufactureOwned()">Owned</ion-radio>
+            <ion-radio ng-model="manufacturePremise" ng-value="leased" ng-click="manufactureLeased()">Leased</ion-radio-->
+            
+            <label class="item item-input" id="manufacturePremiseOwned" style="display: none;">
+                <input type="number" placeholder="Approx Value of Land (Rs. In Lacs)" class="form-control" name="manufacturePremise" ng-model="formData.ManufacturePremise">
+            </label>
+            
+        <h4>Major loans of business </h4>
+        
+		  <div style= "border: 2px solid gray; padding: 10px;">
+			 <h4>Name of Bank</h4>
+				<label class="item item-input" name="BankName" id="page7_BankName">
+				  <input type="text" placeholder="Name of Bank/NBFC" ng-model="formData.BankName">
+				</label>
+			 <h4>Amount Outstanding</h4>
+				<label class="item item-input" id="page7_Amount">
+					<input type="number" placeholder="Outstanding Values (Rs. In Lacs)" name="Amount" ng-model="formData.Amount">
+				</label>
+           </div>
+        
+            <div class="spacer" style="width: 320px; height: 31px;"></div>
+            <!--button class="btn btn-primary pull-left" onclick="window.location.href='#/page6'">Back</button-->
+			 <a class="button BackBtn" href="#/page6">Back</a>
+            <button type="submit" class="btn btn-primary pull-right" ng-click="ValidateFields_page7();">Next</button>
+    
+      <!--/form-->
+    </ion-content>
+</ion-view></script>
+      
+<script id="page8.html" type="text/ng-template">
+<ion-view title='<img class="title-image img-responsive" src="img/smeniwas_logo.jpg" style="display: inline; width:175px"/>'>
+    <ion-content padding="true" class="has-header">
+        <!--form name="form8" novalidate ng-submit="saveData()" method="POST"-->
+           <h4>customers with sales amount </h4>
+		   
+		<div style= "border: 2px solid gray; padding: 10px;">
+			<fieldset>
+              <h4>Customer 1</h4>
+				<label class="item item-input" id="page8_cust1">
+				    <span class="input-label">Customer Name : </span>
+					<input type="text" class="form-control" name="cust1" ng-model="formData.cust1">
+				</label>
+				<label class="item item-input" id="page8_sale1">
+				    <span class="input-label">Annual Sales Amount : </span>
+					<input type="number" placeholder="(Rs. In Lacs)" class="form-control" name="sale1" ng-model="formData.sale1">
+				</label>
+				<label class="item item-input" id="page8_year1">
+				    <span class="input-label">Relationship Since(Year):</span>
+				     <select ng-model="formData.year1" style="width: 50%; padding: 8px 12px;">
+                         <option value="">Select year</option>
+                         <option value="1 year">1 year</option>
+                         <option value="2-4 years">2 - 4 years</option>
+                         <option value="4-8 years">4 - 8 years</option>
+                         <option value="8 years">8 years</option>    
+                       </select>
+				</label>
+			</fieldset>
+			
+			<fieldset>
+              <h4>Customer 2</h4>
+				<label class="item item-input" id="page8_cust2">
+				    <span class="input-label">Customer Name : </span>
+					<input type="text" class="form-control" name="cust2" ng-model="formData.cust2">
+				</label>
+				<label class="item item-input" id="page8_sale2">
+				    <span class="input-label">Annual Sales Amount : </span>
+					<input type="number" placeholder="(Rs. In Lacs)" class="form-control" name="sale2" ng-model="formData.sale2">
+				</label>
+				<label class="item item-input" id="page8_year2">
+				   <span class="input-label">Relationship Since(Year):</span>
+				     <select ng-model="formData.year2" style="width: 50%; padding: 8px 12px;">
+                         <option value="">Select year</option>
+                         <option value="1 year">1 year</option>
+                         <option value="2-4 years">2 - 4 years</option>
+                         <option value="4-8 years">4 - 8 years</option>
+                         <option value="8 years">8 years</option>    
+                       </select>
+				</label>
+			</fieldset>
+			
+			<fieldset>
+              <h4>Customer 3</h4>
+				<label class="item item-input" id="page8_cust3">
+				    <span class="input-label">Customer Name : </span>
+					<input type="text" class="form-control" name="cust3" ng-model="formData.cust3">
+				</label>
+				<label class="item item-input" id="page8_sale3">
+				    <span class="input-label">Annual Sales Amount : </span>
+					<input type="number" placeholder="(Rs. In Lacs)" class="form-control" name="sale3" ng-model="formData.sale3">
+				</label>
+				<label class="item item-input" id="page8_year3">
+				   <span class="input-label">Relationship Since(Year):</span>
+				     <select ng-model="formData.year3" style="width: 50%; padding: 8px 12px;">
+                         <option value="">Select year</option>
+                         <option value="1 year">1 year</option>
+                         <option value="2-4 years">2 - 4 years</option>
+                         <option value="4-8 years">4 - 8 years</option>
+                         <option value="8 years">8 years</option>    
+                       </select>
+				</label>
+   
+			</fieldset>
+		</div>
+        
+        <h4>Cash Sales </h4>
+        
+            <label class="item item-input" id="page8_CashSales">
+                <input type="text" placeholder="" name="CashSales" ng-model="formData.CashSales">
+            </label>
+        
+        <h4>Purpose of Loan </h4>
+        
+            <label class="item item-select" name="LoanPurpose" id="page8_LoanPurpose">
+                <select name="loanPurpose" ng-model="formData.LoanPurpose">
+                  <option value="">Select your option</option>
+                  <option ng-repeat= "loanPurpose in listdata | filter: {type: 'PURPOSE_OF_LOAN'}" value="{{ loanPurpose.value }}">{{ loanPurpose.name }}</option>
+                </select>
+            </label>   
+            
+        <h4>Required Amount</h4>
+        
+           <label class="item item-input" name="amount" id="page8_ReqAmt">
+                <input type="number" placeholder="(Rs. In Lacs)" class="form-control" ng-model="formData.ReqAmt">
+           </label>
+        
+        <div class="spacer" style="width: 300px; height: 26px;"></div>
+         <button class="btn btn-primary pull-left" onclick="window.location.href='#/page7'">Back</button>
+        <button type="submit" class="btn btn-primary pull-right" ng-click="ValidateFields_page8();">Next</button>
+      
+    </ion-content>
+</ion-view></script>
+      
+<script id="page9.html" type="text/ng-template">
+<ion-view title='<img class="title-image img-responsive" src="img/smeniwas_logo.jpg" style="display: inline; width:175px"/>'>
+    <ion-content padding="true" class="has-header">
+        <!--form name= "form9" ng-submit="saveData()" method="POST"-->  
+           <h4>Collateral Property</h4>
+              <div id="checkYesNo">
+				<label><input type="radio" name="YesNo" ng-model="formData.YesNo" value="Yes" ng-click="SelectCollateral()"> Yes</label>
+				<label><input type="radio" name="YesNo" ng-model="formData.YesNo" value="No" ng-click="deSelectCollateral()"> No</label>
+              </div>
+            <!--ion-radio ng-repeat="item in listdata | filter: {type: 'YES_NO_TYPE'}" ng-value="item.value" ng-model="selectedValue.listdata">{{ item.name }}</ion-radio-->
+        
+        <fieldset id="ColType" style="display: none;">
+        <legend>Type Of Security Offered - Collateral property</legend>
+         <h4>Type of collateral offered</h4>
+        
+            <label class="item item-select" name="TypeOfCollateral" id="page9_PropType">
+                <select name="propType" ng-model="formData.PropType">
+                 <option value="">Select property type</option>
+                 <option ng-repeat= "collateralType in listdata | filter: {type: 'PROPERTY_TYPE'}" value="{{ collateralType.value }}">{{ collateralType.name }}</option>
+                </select>
+            </label>
+       
+        <h4>Address</h4>
+        <label class="item item-input" name="Address" id="page9_ColAddress">
+           <textarea placeholder="Address" class="form-control" name="colAddress" ng-model="formData.ColAddress"> </textarea>
+        </label>
+        
+        <h4>City</h4>
+        
+            <label class="item item-select" name="City" id="page9_ColCity">
+                <select id="City" ng-model="formData.ColCity" ng-change="GetValue()">
+                  <option value="">Select city</option>
+                  <option ng-repeat= "city in listdata | filter: {type: 'CITY'}" value="{{ city.value }}">{{ city.name }}</option>
+                </select>
+            </label>
+			
+			<div id="ColCity" style="display: none;">
+				<h4>City Name</h4>
+				<label>
+				    <input type="text" placeholder="Enter city name" class="form-control" ng-model="formData.ColCity">
+				</label>
+			</div>
+        
+        <h4>Pincode</h4>
+       
+            <label class="item item-input" name="Pincode" id="page9_ColPincode">
+                <input type="number" placeholder="Enter pincode" class="form-control" name="colPincode" ng-model="formData.ColPincode">
+            </label>
+       
+        <h4>Latest Valuation</h4>
+  
+            <label class="item item-input" name="Latest" id="page9_LatestVal">
+                <input type="number" placeholder="(Rs. In Lacs)" class="form-control" name="latestVal" ng-model="formData.LatestVal">
+            </label>
+       
+         <h4>Is it</h4>
+         <div id="checkRadioButton3">
+            <input type="radio" name="Rb" ng-model="formData.CollateralType" value="Self Occupied">Self Occupied
+            <input type="radio" name="Rb" ng-model="formData.CollateralType" value="Rented">Rented
+            <input type="radio" name="Rb" ng-model="formData.CollateralType" value="Empty">Empty
+        </div>
+        </fieldset>
+        <div class="spacer" style="width: 300px; height: 26px;"></div>
+		
+		 <!--button class="btn btn-primary pull-left" ng-click="window.location.href='#/page8'">Back</button-->
+		  
+           <a class="button BackBtn" href="#/page8">Back</a>
+         
+         <button type="submit" class="btn btn-primary pull-right" ng-click="ValidateFields_page9();">Next</button>
+    </ion-content>
+</ion-view>
+</script>
+
+<script id="page10.html" type="text/ng-template">
+<ion-view title='<img class="title-image img-responsive" src="img/smeniwas_logo.jpg" style="display: inline; width:175px"/>'>
+    <ion-content padding="true" class="has-header">
+        <div>
+         
+		 <!--form action="../upload.php" method="post" enctype="multipart/form-data"-->
+		 <h4>Upload documents</h4>
+		 <fieldset style= "border: 2px solid gray; padding: 20px; padding-top: 0px;">
+			 <legend style="background-color: #337ab7; padding-left: 15px; color: #fff;">Company KYC & Financials</legend>
+				 <h4>Financials Reports/Balance Sheets</h4>
+				 <div class="item">
+					 <div class="row"><h1 class="input-label col-xs-12" style="font-weight: bold;">FY2014-15</h1></div>
+					 
+					<span>
+					  <input type="file" ngf-select="" ng-model="formData.picFile" name="file[]" accept="'image/*'">
+					</span>
+					
+					<!--span style="padding: 10px;"><button ng-disabled="!myForm.$valid" ng-click="uploadPic(picFile)" style="display: table;">Upload Image</button></span-->
+					
+					<span class="progress" ng-show="picFile.progress >= 0">
+					   <div style="width:{{picFile.progress}}%; background-color: orange;margin: 10px 0px;" ng-bind="picFile.progress + '%'" class="ng-binding col-xs-12">100%</div>
+					</span>
+				</div>
+					 
+				 <h4>KYC details</h4>
+		
+				 <div class="item">
+					 <div class="row">
+						  <h1 class="input-label col-xs-12" style="font-weight: bold;">PAN Card</h1>
+					 </div>
+					<span>
+					  <input type="file" ngf-select="" ng-model="formData.picFile1" name="file[]" accept="'image/*'">
+					</span>
+					
+					<!--span style="padding: 10px;"><button ng-disabled="!myForm.$valid" ng-click="uploadPic(picFile1)" style="display: table;">Upload Image</button></span-->
+					
+					<span class="progress" ng-show="picFile1.progress >= 0">
+					<div style="width:{{picFile1.progress}}%; background-color: orange;margin: 10px 0px;" ng-bind="picFile1.progress + '%'" class="ng-binding col-xs-12">100%</div>
+					</span>
+				</div>
+					 
+				 <div class="item">
+					 <div class="row">
+						  <h1 class="input-label col-xs-12" style="font-weight: bold;">Address Proof of Company Business</h1>
+					 </div>
+					<span class="col-xs-12">
+					  <input type="file" ngf-select="" ng-model="formData.picFile1" name="file[]" accept="'image/*'" class="pic_files">
+					</span>
+					
+					<!--span style="padding: 10px;"><button ng-disabled="!myForm.$valid" ng-click="uploadPic(picFile2)" style="display: table;">Upload Image</button></span-->
+					
+					<span class="progress" ng-show="picFile2.progress >= 0">
+					   <div style="width:{{picFile2.progress}}%; background-color: orange;margin: 10px 0px;" ng-bind="picFile2.progress + '%'" class="ng-binding col-xs-12">100%</div>
+					</span>
+				</div>	 
+			</fieldset>
+			
+			<fieldset style= "border: 2px solid gray; padding: 20px; padding-top: 0px; margin-top: 30px;">
+			  <legend style="background-color: #337ab7; padding-left: 15px; color: #fff;">Promoter KYC & Financials</legend>
+				<h4>KYC Details</h4>
+				   <div class="item">
+					 <div class="row"><h1 class="input-label col-xs-12" style="font-weight: bold;">Address Proof</h1></div>
+					 
+					 <span>
+					  <input type="file" ngf-select="" ng-model="formData.picFile1" name="file[]" accept="'image/*'">
+					 </span>
+					
+					 <!--span style="padding: 10px;"><button ng-disabled="!myForm.$valid" ng-click="uploadPic(picFile3)" style="display: table;">Upload Image</button></span-->
+					  
+					 <span class="progress" ng-show="picFile3.progress >= 0">
+					   <div style="width:{{picFile3.progress}}%; background-color: orange;margin: 10px 0px;" ng-bind="picFile3.progress + '%'" class="ng-binding col-xs-12">100%</div>
+					 </span>
+				 </div>
+				
+				<div class="item">
+					 <div class="row"><h1 class="input-label col-xs-12" style="font-weight: bold;">PAN Card of Promoter</h1></div>
+					 
+					 <span>
+					  <input type="file" ngf-select="" ng-model="formData.picFile1" name="file[]" accept="'image/*'">
+					 </span>
+					
+					 <!--span style="padding: 10px;"><button ng-disabled="!myForm.$valid" ng-click="uploadPic(picFile4)" style="display: table;">Upload Image</button></span-->
+					  
+					 <span class="progress" ng-show="picFile4.progress >= 0">
+					   <div style="width:{{picFile4.progress}}%; background-color: orange;margin: 10px 0px;" ng-bind="picFile4.progress + '%'" class="ng-binding col-xs-12">100%</div>
+					 </span>
+				 </div>
+					 
+				<h4>Bank Statement</h4>
+				 <div class="item">
+					 <div class="row"><h1 class="input-label col-xs-12" style="font-weight: bold;">Bank Statement</h1></div>
+					 
+					 <span>
+					  <input type="file" ngf-select="" ng-model="formData.picFile1" name="file[]" accept="'image/*'">
+					 </span>
+					
+					 <!--span style="padding: 10px;"><button ng-disabled="!myForm.$valid" ng-click="uploadPic(picFile5)" style="display: table;">Upload Image</button></span-->
+					  
+					 <span class="progress" ng-show="picFile5.progress >= 0">
+					   <div style="width:{{picFile5.progress}}%; background-color: orange;margin: 10px 0px;" ng-bind="picFile5.progress + '%'" class="ng-binding col-xs-12">100%</div>
+					 </span>
+				 </div>
+					 
+				<h4>Financials</h4>
+				 <div class="item">	 
+			     <div class="row"><h1 class="input-label col-xs-12" style="font-weight: bold;">CIBIL report</h1></div>
+				 
+				 <span>
+				  <input type="file" ngf-select="" ng-model="formData.picFile1" name="file[]" accept="'image/*'">
+				 </span>
+				
+				 <!--span style="padding: 10px;"><button ng-disabled="!myForm.$valid" ng-click="uploadPic(picFile6)" style="display: table;">Upload Image</button></span-->
+				  
+				 <span class="progress" ng-show="picFile6.progress >= 0">
+				   <div style="width:{{picFile6.progress}}%; background-color: orange;margin: 10px 0px;" ng-bind="picFile6.progress + '%'" class="ng-binding col-xs-12">100%</div>
+				 </span>
+				</div>
+			</fieldset>
+           <!--  <span style="padding: 10px;"><button ng-disabled="!myForm.$valid" ng-click="uploadPic(picFile)" style="display: table;">Upload Image</button></span> -->
+			<!--input type="submit" value="Upload all files"-->
+         <!--/form-->
+       
+        <!-- <div class="spacer" style="width: 320px; height: 31px;"></div>
+		 <button class="btn btn-primary pull-left" onclick="window.location.href='#/page9'">Back</button>
+         <button type="submit" class="btn btn-primary pull-right" ng-click="ValidateFields_page10();">Submit</button>
+      -->
+	  <input type="submit" value="submit">
+	  
+    </ion-content>
+</ion-view></script>
+</form>
+
+<script id="page11.html" type="text/ng-template">
+<ion-view title='<img class="title-image img-responsive" src="img/smeniwas_logo.jpg" style="display: inline; width:175px"/>'>
+    <ion-content padding="true" scroll="false" class="has-header">
+        <div class="spacer" style="width: 300px; height: 90px;"></div>
+        <h1>Thank you for Registering</h1>
+        <div class="spacer" style="width: 300px; height: 112px;"></div>
+        <a href="#/page1" class="button button-balanced button-block">Close</a>
+    </ion-content>
+</ion-view></script>
+    
+  </body>
+</html>

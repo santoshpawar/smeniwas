@@ -1,0 +1,182 @@
+<?php
+return [
+    'MD_CACHE_TIMEOUT' => 10,
+    'MD_STATE' => 'STATE',
+    'MD_CITY' => 'CITY',
+    'MD_ENTITY_TYPE' => 'ENTITY_TYPE',
+    'MD_NATURE_OF_BUSINESS_ACTIVITY' => 'NATURE_OF_BUSINESS_ACTIVITY',
+    'MD_BUSINESS_NATURE' => 'BUSINESS_NATURE',
+    'MD_INDUSTRY_TYPE' => 'INDUSTRY_TYPE',
+    'MD_COMPANY_POSITION_TYPE' => 'COMPANY_POSITION_TYPE',
+    'MD_PRODUCTS_TYPE' => 'PRODUCTS_TYPE',
+    'MD_PROPERTY_TYPE' => 'PROPERTY_TYPE',
+    'MD_PROPERTY_LAND' => 'PROPERTY_LAND',
+    'MD_CRADIT_RATINGS' => 'CRADIT_RATINGS',
+    'MD_RATING_AGENCY' => 'RATING_AGENCY',
+    'MD_COMMERCIAL_TYPE' => 'COMMERCIAL_TYPE',
+    'MD_RESIDENTIAL_TYPE' => 'RESIDENTIAL_TYPE',
+    'MD_LAND_TYPE' => 'LAND_TYPE',
+    'MD_LENDER_TYPE'=>'LENDER_TYPE',
+    'MD_RELATION_WITH_APPLICANT_TYPE' => 'RELATION_WITH_APPLICANT_TYPE',
+    'MD_TENURE_YEAR' => 'TENURE_YEAR',
+    'MD_PROMOTER_GENERATION_TYPE' => 'PROMOTER_GENERATION_TYPE',
+    'MD_PROMOTER_BACKGROUND'=>'PROMOTER_BACKGROUND',
+    'MD_SALES'=>'SALES',
+    'MD_OWNER_TYPE_LIST' =>'OWNER_TYPE_LIST',
+    'MD_MAX_LENDER' => 10,
+    'MD_BALANCE_SHEET_FY' => 'BALANCE_SHEET_FY',
+    'MD_ADDRESS_PROOF_TYPE' => 'ADDRESS_PROOF_TYPE',
+    'MD_END_USER_TYPE' => 'END_USER_TYPE',
+    'MD_NO_OF_FAMILIES' => 'NO_OF_FAMILIES',
+    'MD_ATTRIBUTE_STATUS' => 'ATTRIBUTE_STATUS',
+    'MD_PURPOSE_OF_LOAN' => 'PURPOSE_OF_LOAN',
+    'MD_PURCHASED_EQUIPMENT_TYPE' => 'PURCHASED_EQUIPMENT_TYPE',
+    'MD_YES_NO_TYPE' => 'YES_NO_TYPE',
+    'MD_EXPRESSION_TYPE' => 'EXPRESSION_TYPE',
+    'MD_DEGREE_TYPE' => 'DEGREE_TYPE',
+    'MD_LOAN_PRODUCT_TYPE' => 'LOAN_PRODUCT_TYPE',
+    'MD_WIZARD_USER_TYPE' => 'WIZARD_USER_TYPE',
+    'MD_MAX_BANK_STATEMENT'=>4,
+    'MD_DOCUMENT_TYPE'=>'DOCUMENT_TYPE',
+    'MD_OTHER_SECURITY_TYPE'=>'OTHER_SECURITY_TYPE',
+    'MD_PROPERTY_OWNER_TYPE'=>'PROPERTY_OWNER_TYPE',
+    'MD_PROPERTY_PROPERTY_IS'=>'PROPERTY_IS',
+    'MD_END_USE_LIST'=>'END_USE_LIST',
+    'MD_PAYMENT_TERMS_TYPE'=>'PAYMENT_TERMS_TYPE',
+    'MD_COLLATERAL_DEFECT_TYPE'=>'COLLATERAL_DEFECT_TYPE',
+    'MD_BUSINESS_VINTAGE' => 'BUSINESS_VINTAGE',
+    'MD_CREDIT_RATING_POINTS' => 'CREDIT_RATING_POINTS',
+    'MD_LIQUIDITY_RATING_POINTS' => 'LIQUIDITY_RATING_POINTS',
+    'MD_INSURANCE_PRODUCT_TYPE' => 'INSURANCE_PRODUCT_TYPE',
+    'MD_INSURANCE_ASSETS_TO_BE_ISURED' => 'INSURANCE_ASSETS_TO_BE_ISURED',
+    'MD_INSURANCE_INVENTORY_TYPES' => 'INSURANCE_INVENTORY_TYPES',
+    'MD_INSURANCE_MARINE_INLAND_TYPE' => 'INSURANCE_MARINE_INLAND_TYPE',
+    'MD_INSURANCE_MARINE_CARGO_TYPE' => 'INSURANCE_MARINE_CARGO_TYPE',
+    'MD_INSURANCE_MARINE_RISK_TYPE' => 'INSURANCE_MARINE_RISK_TYPE',
+
+    //Roles
+    'RL_SME' => 'SME',
+    'RL_ANALYST' => 'ANALYST',
+    'RL_CP' => 'CP',
+    'RL_ADMIN' => 'ADMIN',
+    'RL_EXECUTIVE' => 'EXECUTIVE',
+    'RL_BANK_USER' =>'BANK_USER',
+    'RL_MANAGEMENT' => 'MANAGEMENT',
+    'RL_APPROVE_USER' => 'APPROVER',
+    'RL_LOAN_ADMIN' => 'LOAN_ADMIN',
+
+    'CONST_MAX_LENDER' => 5,
+    'CONST_MAX_PROMOTER' => 5, // Maximum Number of Promoters in Promoter/Director Details
+    'CONST_FILE_STORAGE_TYPE' => 'local',
+    'CONST_MAX_COMPANY_DETAIL' => 5,
+    'CONST_MAX_COMPANY_BANK_STATEMENT'=>4,
+    'CONST_MAX_INVOICE_COPY_OF_EQUIPMENT_PURCHASE'=>4,
+    'CONST_MAX_COPY_OF_INVOICE_BILL_DETAILS'=>6,
+    'CONST_MAX_SECURITY_DOCUMENT_DETAILS'=>4,
+    'CONST_MAX_PAYMENT_TERMS' => 5,
+    'CONST_MAX_RECEIVABLE_DISCOUNT' => 3,
+    'CONST_MAX_ANOTHER_TYPES' => 4,
+
+
+
+    //Loan Types
+    'CONST_LOAN_TYPE_CC' => 'CC',
+    'CONST_LOAN_TYPE_STL' => 'STL',
+    'CONST_LOAN_TYPE_LAP' => 'LAP',
+    'CONST_LOAN_TYPE_UBL' => 'UBL',
+    'CONST_LOAN_TYPE_EFL' => 'EFL',
+    'CONST_LOAN_TYPE_VF' => 'VF',
+    'CONST_LOAN_TYPE_CSCF' => 'CSCF',
+    'CONST_LOAN_TYPE_LAS' => 'LAS',
+    //'CONST_LOAN_TYPE_GEN_INS' => 'GEN_INS',
+
+    //CA Financial Group Types
+    'CONST_FIN_GROUP_TYPE_GS' => 'Google Search',
+    'CONST_FIN_GROUP_TYPE_BS' => 'Balance Sheet',
+    'CONST_FIN_GROUP_TYPE_PL' => 'Profit & Loss',
+    'CONST_FIN_GROUP_TYPE_CF' => 'Cashflow',
+    'CONST_FIN_GROUP_TYPE_RATIO' => 'Ratio',
+
+    //CA Financial Data Rounding Precision
+    'CONST_FIN_DATA_PRECISION' => 2,
+
+    //End Use List Types
+    'CONST_END_USE_FI' => 'FI',
+    'CONST_END_USE_FD' => 'FD',
+    'CONST_END_USE_PV' => 'PV',
+    'CONST_END_USE_PE' => 'PE',
+    'CONST_END_USE_PP' => 'PP',
+    'CONST_END_USE_MRMP' => 'MRMP',
+    'CONST_END_USE_MFAP' => 'MFAP',
+    'CONST_END_USE_STAPCFP' => 'STAPCFP',
+    'CONST_END_USE_CE' => 'CE',
+    'CONST_END_USE_BRECP' => 'BRECP',
+    'CONST_END_USE_PPE' => 'PPE',
+    'CONST_END_USE_LTW' => 'LTW',
+
+    //is read only
+    'CONST_IS_READ_ONLY' => 'Y',
+
+    //analyst model types
+    'CONST_ANALYST_MODEL_TYPE_CREDIT' => 'Credit',
+    'CONST_ANALYST_MODEL_TYPE_COLLATERAL' => 'Collateral',
+
+    //Liquidity Model Types
+    'CONST_LIQUIDITY_MODEL_TYPE_CREDIT' => 'Liquidity',
+ 
+
+    //Loan Status Types
+    'CONST_LOAN_STATUS_TYPE_0' => '0',
+    'CONST_LOAN_STATUS_TYPE_1' => '1',  //Application Form Pending
+    'CONST_LOAN_STATUS_TYPE_2' => '2',  //Document Upload Pending
+    'CONST_LOAN_STATUS_TYPE_3' => '3',  //Application Submitted
+    'CONST_LOAN_STATUS_TYPE_4' => '4',  //Application Forwarded to Bank
+    'CONST_LOAN_STATUS_TYPE_5' => '5', //Query from Bank
+    'CONST_LOAN_STATUS_TYPE_20' => '20', //Approved by Bank
+    'CONST_LOAN_STATUS_TYPE_21' => '21', //Rejected by Bank
+    'CONST_LOAN_STATUS_TYPE_22' => '22', //Praposal Forwareded to Approvar
+    'CONST_LOAN_STATUS_TYPE_23' => '23', //Approver Rejected Proposal 
+    'CONST_LOAN_STATUS_TYPE_24' => '24', //Praposal Approved
+     
+    'CONST_LOAN_TAB_DISABLE_YES' => '1',  //Disabled Tab functionality value for Yes
+    'CONST_LOAN_TAB_DISABLE_NO' => '0',  //Disabled Tab functionality value for No
+
+    'CONST_DISCARD_LOAN_APPLICATION_YES' => '1',  //Discarding Loan Application functionality for Yes
+    'CONST_DISCARD_LOAN_APPLICATION_NO' => '0',  //Discarding Loan Application functionality for No
+
+
+    'CONST_PL_TABLE' => 'financials_profit_loss',
+    'CONST_BS_TABLE' => 'financials_balance_sheet',
+    'CONST_PROMOTER_DETAILS_TABLE' => 'loans_promoter_details',
+    'CONST_LOANS_TABLE' => 'loans',
+    'CONST_LOANS_SECURITY_DETAILS_TABLE' => 'loans_security_details',
+    'CONST_BUSINESS_DETAILS_TABLE' => 'loans_businessoperation_details',
+    'CONST_LOANS_SALESAREA_TABLE' => 'loans_salesarea_details',
+    'CONST_RATIOS_TABLE' => 'financials_ratios',
+    'CONST_CREDIT_TABLE' => 'analyst_model_ratings',
+    'CONST_LIQUIDITY_TABLE' => 'analyst_model_ratings',
+    'CONST_COLLATERAL_TABLE' => 'analyst_model_ratings',
+    'CONST_USER_PROFILES_TABLE' => 'analyst_model_ratings',
+
+//    Remove Mandatory
+    'MD_REMOVE_MANDATORY' => 'REMOVE_MANDATORY',
+
+    'CONST_BK_ALO_TYPE_LOAN' => 'Loan',
+    'CONST_BK_ALO_TYPE_USER_PROFILE' => 'User Profile',
+    'CONST_BK_ALO_TYPE_RATIO' => 'Ratio',
+    'CONST_BK_ALO_TYPE_CREDIT' => 'Credit',
+    'CONST_BK_ALO_TYPE_COLLATERAL' => 'Collateral',
+
+    'CONST_ALO_TYPE_AUTOMATED' => 1,
+    'CONST_ALO_TYPE_MANUAL' => 2,
+
+    'CONST_BK_ALO_DIM_LTV' => 'LTV Ratio',
+
+
+    //sECURITY dETAILS iNEVTORY
+        'MD_TYPE_OF_INVENTORY' => 'TYPE_OF_INVENTORY',
+        'MD_NATURE_OF_INVENTORY' => 'NATURE_OF_INVENTORY',
+
+        
+
+];

@@ -1,0 +1,47 @@
+1. The data is not being overwritten. If we make changes in the model, it does not show the saved changes after being refreshed......
+
+2. In credit model, the range of ratios auto populated from calculated ratios is not being matched. The range being auto populated is inappropriate. Below ratios are not being captured 
+a. Turnover / total assets.......Net Revenue / Total Assets.............Done
+b. Gross profit/ fixed cost.............Gross profit / Other Fixed Expenses........Done
+c. ROE.............
+d. ROCE...........ROCE (EBITDA/Average Total Assets)
+EBITDA= CURRENT YEAR AND LAST YEAR....DONE
+Current Ratio.....Done
+Credit Model = Ratios Value captures latest filled values.............Done
+greter than750 =1
+600 - 675 =0.25 
+675-750 = 0.5....Done
+
+less than 600 = -0.5  ...done with 
+
+3. Data selected for No of years in Business not being captured once saved.
+
+4. In Create Loan Proposal section, Proposal details
+Total Borrowing in last 6 months (Amt and lenders)
+Amount of high cost (> 16%) loans borrowed
+Require free hand, characters and alphabets to be filled..........Done
+
+5. Proposal checklist- CIBIL score not captured.
+
+6. The data is not being overwrite if changes are made in Proposal details section
+
+7. PDF version of appraisal does not capture industry and data filled in system and data in PDF not matched.  
+
+8. In PDF version, vintage not capture
+Details regarding Purpose of loan not being reflected in PDF
+
+===================row addition keyloanterm form==============================
+above Recommendation Of Analyst
++++Last RowRisk & Mitigants +++
+
+
+=============New Errors=========
+Vintage of business (yrs) ---loans/praposal/details/STL/BRECP/1800000/3/10385
+
+keyloanterm============
+1.Interest Rate (%)
+rs in Lac
+
+<span class="small">( <i class="fa fa-rupee"></i> Lacs )</span>
+<span class="small">( % )</span>
+

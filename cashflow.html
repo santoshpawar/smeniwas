@@ -1,0 +1,207 @@
+ 
+@if(isset($financialDataRecordsID) && $financialDataRecordsID != null) 
+<div class="col-md-7" style="  margin-left: 35%; margin-top: 25px;  margin-bottom: 20px;">
+  <p class="user_name">Input Balance Sheet</p>
+</div><br>
+{!! Form::model($financialDataRecords) !!}
+<?php $counter = 0;?>
+<table width="33%;" style="page-break-after: always;">
+  <tr>
+    <td colspan="2"></td>
+  </tr> 
+  <tr>
+    @foreach($bl_year as $blyear)
+    <?php
+    $financialDataExpression = null;  
+    if ($financialDataExpressionsMap->offsetExists($blyear)) {
+      echo "string";
+      $financialDataExpression = $financialDataExpressionsMap->offsetGet($blyear);
+    }
+    $financialDataRecord = null;
+    if ($financialDataMap->offsetExists($blyear)) {
+      $financialDataRecord = $financialDataMap->offsetGet($blyear);
+        
+    }
+    $showTextFieldsForFormula = false;
+    if (isset($showFormulaText) && $showFormulaText) {
+      $showTextFieldsForFormula = true;
+    }
+    ?>
+    <td align="center">&nbsp;</td>
+    <td align="center">
+      {!! Form::label($blyear, $blyear) !!}
+      <table border="1"
+      style="margin-bottom: 0px; width : 33%;margin:0;float: left;page-break-after: always;">
+      <tr>
+        <td valign="top" style="  font-size: 12px;">
+          <table class="table table-bordered table-hover">
+            @foreach($financialGroups as $group)
+            <tr>
+              @if(!$group->header)
+              <td>
+                <b>@if($group->visible == 1) {{{ $group->name }}} @else {{{''}}} @endif </b>
+              </td>
+              <td style="padding:5px;"><b>Amount (inLakhs) </b></td>
+              @else
+              <td colspan="2" align="center">
+                <b>@if($group->visible == 1) {{{ $group->name }}} @else {{{''}}} @endif </b>
+              </td>
+              @endif
+            </tr>
+            @foreach($group->financialEntries as $entry)
+            @if(isset($financialDataRecord))
+            {!! Form::hidden('financial['.$counter.'][id]',$financialDataRecord->id)!!}
+            {!! Form::hidden('financial['.$counter.'][loan_id]', $financialDataRecord->loan_id)!!}
+            {!! Form::hidden('financial['.$counter.'][period]',$financialDataRecord->period)!!}
+            @else
+            {!!Form::hidden('financial['.$counter.'][loan_id]',$loanId)!!}
+            {!! Form::hidden('financial['.$counter.'][period]',$blyear)!!}
+            @endif
+            <tr>
+              <?php
+              $expressionValue = " ";
+              $tooltipText = "";
+              if ($entry->hasFormula()) {
+                $tooltipText = "Formula: " . $entry->formula_reference . " = " . $entry->formula;
+              } else {
+                $tooltipText = "Field: " . $entry->formula_reference;
+              }
+              if (isset($financialDataExpression) && $financialDataExpression->offsetExists($entry->formula_reference)) {
+                $storedValue = $financialDataExpression->offsetGet($entry->formula_reference);
+                $expressionValue = $storedValue->getValue();
+              }
+              if (!isset($expressionValue) || $expressionValue == "") {
+                $expressionValue = " ";
+              }
+              ?>
+              <td width="50%" style="padding:5px;">
+                {!! Form::label($entry->attribute,$entry->entry,['style' => 'width:110px;']) !!}
+                <!-- <sup><a href="#" data-toggle="tooltip" data-placement="top" title="{{$tooltipText}}">?</a></sup> -->
+              </td>
+              <td style="padding:5px;">
+                @if(!$entry->hasFormula() || $showTextFieldsForFormula)
+                {!! Form::text('financial['.$counter.']['.$entry->attribute.']',$expressionValue, array('id'=>'financial_'.$counter.'_'.$entry->attribute.'', 'class'=>'readonly-text','onKeyDown'=>'limitText(this);','onKeyUp'=>'limitText(this);', 'style' => 'width: 140px;')) !!}
+          
+                @else
+                {!! Form::label($entry->attribute, $expressionValue, array('id' =>'financial_'.$counter.'_'.$entry->attribute.'_label')) !!}
+                {!! Form::hidden('financial['.$counter.']['.$entry->attribute.']', $expressionValue, ['id' =>'financial_'.$counter.'_'.$entry->attribute.''])!!}
+                @endif
+              </td>
+            </tr>
+            @endforeach
+            @endforeach
+          </table>
+        </td>
+      </tr>
+    </table>
+  </td>
+  <?php $counter++;?>
+  @endforeach
+</tr>
+</table>
+{!! Form::close() !!}
+@else
+@endif
+
+{{-- CASHFLOW --}}
+ 
+<?php $counterCF = 0; ?>
+<table>
+    <tr>
+        <td colspan="3"></td>
+    </tr>
+    <tr>
+        @foreach($bl_year as $blyear)
+        <?php
+        $financialDataExpression = null;
+        $key_blyear = str_replace('(Provisional)', '', $blyear);
+        if ($financialDataExpressionsMapCF->offsetExists($key_blyear)) {
+            $financialDataExpression = $financialDataExpressionsMapCF->offsetGet($key_blyear);
+        }
+        $financialDataRecord = null;
+        if ($financialDataMap->offsetExists($key_blyear)) {
+            $financialDataRecord = $financialDataMap->offsetGet($key_blyear);
+        }
+        $showTextFieldsForFormula = false;
+        if (isset($showFormulaText) && $showFormulaText) {
+            $showTextFieldsForFormula = true;
+        }
+        ?>
+        <td align="center">&nbsp;</td>
+        <td align="center">
+            {!! Form::label($blyear, $blyear) !!}
+            <table border="0">
+                <tr>
+                    <td valign="top" colspan="2">
+                        <table class="table table-condensed table-bordered table-hover">
+                            @foreach($financialGroupsCF as $group)
+                            <tr class="cf-group-header">
+                                @if(!$group->header)
+                                <td style="padding:5px;">
+                                    <b>@if($group->visible == 1) {{{ $group->name }}} @else {{{''}}} @endif </b>
+                                </td>
+                                <td style="padding:5px;"><b>Amount ( <span class="fa fa-inr">&nbsp; </span>Lacs ) </b></td>
+                                @else
+                                <td colspan="2" align="center">
+                                    <b>@if($group->visible == 1) {{{ $group->name }}} @else {{{''}}} @endif </b>
+                                </td>
+                                @endif
+                            </tr>
+                            @foreach($group->financialEntries as $entry)
+                            @if(isset($financialDataRecord))
+                            {!! Form::hidden('financial['.$counterCF.'][id]',
+                            $financialDataRecord->id)!!}
+                            {!! Form::hidden('financial['.$counterCF.'][loan_id]',
+                            $financialDataRecord->loan_id)!!}
+                            {!! Form::hidden('financial['.$counterCF.'][period]',
+                            $financialDataRecord->period)!!}
+                            @else
+                            {!! Form::hidden('financial['.$counterCF.'][loan_id]', $loanId)!!}
+                            {!! Form::hidden('financial['.$counterCF.'][period]', str_replace('(Provisional)', '', $blyear))!!}
+                            @endif
+                            <?php 
+                            $highlight_class = '';
+                            if($entry->entry == 'Net Cashflow from Operations' || $entry->entry == 'Net Cashflow after Investing Activities' || $entry->entry == 'Net Cashflow after Financing Activity'){
+                                $highlight_class = 'cashflow-highlight-col';
+                            }
+                            if($entry->entry == 'Opening Cash and Cash Equivalents' || $entry->entry == 'Surplus (Deficit) during the year' || $entry->entry == 'Closing Cash and Cash Equivalent'){
+                                $highlight_class = 'cf-bottom-result';
+                            }
+                            ?>
+                            <tr class="{{$highlight_class}}">
+                                <?php
+                                $expressionValue = " ";
+                                $tooltipText = "";
+                                if ($entry->hasFormula()) {
+                                    $tooltipText = "Formula: " . $entry->formula_reference . " = " . $entry->formula;
+                                } else {
+                                    $tooltipText = "Field: " . $entry->formula_reference;
+                                }
+                                if (isset($financialDataExpression) && $financialDataExpression->offsetExists($entry->formula_reference)) {
+                                    $storedValue = $financialDataExpression->offsetGet($entry->formula_reference);
+                                    $expressionValue = $storedValue->getValue();
+                                }
+                                if (!isset($expressionValue) || $expressionValue == "") {
+                                    $expressionValue = " ";
+                                }
+                                ?>
+                                <td width="50%" style="padding:5px;">
+                                 {!! Form::label($entry->attribute, $entry->entry) !!}
+                                 <!-- <sup><a href="#" data-toggle="tooltip" data-placement="top" title="{{$tooltipText}}">?</a></sup> -->
+                             </td>
+                             <td style="padding:5px;">
+                                {!! Form::label($entry->attribute, $expressionValue,array('id'=>'financial_'.$counterCF.'_'.$entry->attribute.'_label')) !!}
+                                {!! Form::hidden('financial['.$counterCF.']['.$entry->attribute.']',$expressionValue, ['id' =>'financial_'.$counterCF.'_'.$entry->attribute.''])!!}
+                            </td>
+                        </tr>
+                        @endforeach
+                        @endforeach
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </td>
+    <?php $counterCF++; ?>
+    @endforeach
+</tr>
+</table>

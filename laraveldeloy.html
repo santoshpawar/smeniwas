@@ -1,0 +1,51 @@
+Check if mod rewrite is enabled - sudo a2enmod rewrite
+Give permissions to your storage and vendor folders - chmod 755 -R laravel and then chmod -R o+w storage 
+Check if you app.config has the environment variables set correctly including the 'url' . Set it to point to the right URL.
+
+If you are using database ensure that you have your database.config set to the correct database for e.g. mysql. Set the database,user id and password
+Go to /etc/apache2/sites-available/ and change your Document root to point to your Laravel public folder. 
+(the one where you have your project installed)
+
+Go to /etc/apache2 and use either of mcedit/vi/nano apache.conf and make the following modifications to /var/www/, 
+you may also want to add this as an additional entry Assuming this is your
+ DocumentRoot "/var/www/html/laravel/public/"
+  <Directory "/var/www/html/laravel/public"> 
+  	Allowoverride All Require all granted
+
+Restart your apache-> apachectl restart or use a command that you find to handy.
+
+Test your pages -- oops problem? Are you getting a file not found issue. Try the following. Check your .htaccess for correctness.
+
+Sometimes you may come across crytp issues this is caused due issues with your key. Try the following..
+
+In your console write: "php artisan key:generate". Secondly, get the 32 characters to config/app.php like 'key' => env('APP_KEY', 'insert get 32 char key')
+
+restart Apache again.
+
+you may also want to clear the route cache by typing in the following
+
+-> php artisan route:clear
+
+Other issues that you would encounter is table not found. If you were developing on windows environment and have deployed the code to aws chances are that these are caused due to case sensitivity of linux environment.
+
+
+===================
+And then Open your httpd.conf file # /etc/httpd/conf
+
+Change your
+
+DocumentRoot "/var/www/html"
+
+to
+
+DocumentRoot "/var/www/html/your_project/public"
+
+$ sudo chmod -R gu+w storage
+
+$ sudo chmod -R guo+w storage
+
+
+sudo service httpd restart.
+
+
+a2ensite your-site.com
