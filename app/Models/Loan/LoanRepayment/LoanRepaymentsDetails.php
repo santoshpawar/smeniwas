@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Eloquent\Model;
  
-class LoanRepayments extends Model
+class LoanRepaymentsDetails extends Model
 {
 	    public $table = "loans_repayment";
 	protected $fillable=[
@@ -57,7 +57,10 @@ class LoanRepayments extends Model
 	];
 	public function getLoan(){
 		return $this->belongsTo('App\Models\Loan\Loan','loan_id','id');
-	}
+	} 
+   public function getLoanRepaymentsMaster(){
+    return $this->belongsTo('App\Models\Loan\LoanRepaymentsMaster','loan_id','id');
+  }
 	public function getUser(){
 		return $this->belongsTo('App\Models\User','user_id','id');
 	}

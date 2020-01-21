@@ -143,7 +143,7 @@ function raiseQuery(){
 </script>
 <!--Start of Tawk.to Script-->
 <script type="text/javascript">
-var $_Tawk_API={},$_Tawk_LoadStart=new Date();
+/*var $_Tawk_API={},$_Tawk_LoadStart=new Date();
 (function(){
   var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
   s1.async=true;
@@ -151,7 +151,7 @@ var $_Tawk_API={},$_Tawk_LoadStart=new Date();
   s1.charset='UTF-8';
   s1.setAttribute('crossorigin','*');
   s0.parentNode.insertBefore(s1,s0);
-})();
+})();*/
 </script>
 <!--End of Tawk.to Script-->
 @endsection
@@ -166,7 +166,15 @@ var $_Tawk_API={},$_Tawk_LoadStart=new Date();
 @endsection
 {{-- FormAction: Loans\LoansController@postIndex --}}
 @section('content')
-  @if ($subViewType == "loans._existing_lenderdetails")
+
+<?php 
+ 
+ 
+
+?>
+
+  @if ($subViewType == "loans._repayment")
+
     {!! Form::model($existingLenders,['method' =>'POST','action' => $formaction] ) !!}
   @elseif($subViewType=='loans._upload_itreturn')
     {!! Form::model($loan,['method' =>'POST','action' => $formaction, 'files'=>true] ) !!}
@@ -195,7 +203,18 @@ var $_Tawk_API={},$_Tawk_LoadStart=new Date();
     {!! Form::model($loan, ['method' =>'POST','action' => $formaction, 'class'=>'form-horizontal', 'role'=> 'form'] ) !!}
 
   @else
+
     {!! Form::model($loan,['method' =>'POST','action' => $formaction, 'class'=>'form-horizontal', 'role'=> 'form', 'onsubmit' => "return validate()"] ) !!}
+ 
+<?php
+  //print_r($loan);
+echo "<pre>";
+echo "string";
+print_r($model);
+echo "</pre>";
+die();
+
+?>
     {{--{!! Form::model($loan,['method' =>'POST','url' => $formaction, 'class'=>'form-horizontal', 'role'=> 'form'] ) !!}--}}
   @endif
   {!! Form::hidden('loanId', $loanId) !!}

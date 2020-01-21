@@ -1,4 +1,6 @@
-<style>
+<p>asjhsajh</p>
+
+{{-- <style>
   .sharePop {
     background: #083b82;
     font-size: 16px;
@@ -125,31 +127,30 @@ echo "</pre>"*/;
                        </div>
                      </div>
                    </div>
-                 </div><br>
+                 </div>
                </div>
              </div>
            </div>
-         </div>
-       </div>
-       <div class="row">
-        <div class="col-md-12">
-          <div id="" class="form-group">
-            <div id="topcust" class="panel panel-success">
-              <div class="panel-heading">Loan Repayment</div>
-              <div class="panel-body">
-                <div class="row" style="padding:5px;">
-                  <div class="col-md-4" >
-                    {!! Form::label('loanamt','Loan Amount Sanctioned', ['class'=>'form-label']) !!}
-                    {!! Form::label(null,null, ['style' => '  color: red;']) !!}
-                    {!! Form::text('p', isset($praposalChecklist->p) ? @$praposalChecklist->p : null, array('class' => 'form-control', 'id'=>'p', 'onchange' => 'computeLoan()' , 'min(1)' , 'max(10000000000)' )) !!} 
-                    {{--  <p>Loan Amount: $<input id="p" type="number" min="1" max="1000000" onchange="computeLoan()"></p> --}}
-                  </div>
-                  <div class="col-md-4" >
-                   {!! Form::label('rateInterest','Interest Rate', ['class'=>'form-label']) !!}
-                   {!! Form::label(null,null, ['style' => '  color: red;']) !!}
-                   {!! Form::text('r',isset($praposalChecklist->r) ? @$praposalChecklist->r : null, array('class' => 'form-control', 'id'=>'r', 'min(0)' , 'max(100)' , 'value' => '1' , 'step' => '1', 'onchange' => 'computeLoan()' , 'placeholder' => '%' )) !!}
-                   {{--  <p>Interest Rate: <input id="r" type="number" min="0" max="100" value="1" step="1" onchange="computeLoan()">%</p> --}}
-                 </div>
+           {{-- Loan Repayment --}}
+           <div class="row">
+            <div class="col-md-12">
+              <div id="" class="form-group">
+                <div id="topcust" class="panel panel-success">
+                  <div class="panel-heading">Loan Repayment</div>
+                  <div class="panel-body">
+                    <div class="row" style="padding:5px;">
+                      <div class="col-md-4" >
+                        {!! Form::label('loanamt','Loan Amount Sanctioned', ['class'=>'form-label']) !!}
+                        {!! Form::label(null,null, ['style' => '  color: red;']) !!}
+                        {!! Form::text('p', isset($praposalChecklist->p) ? @$praposalChecklist->p : 4000000, array('class' => 'form-control', 'id'=>'p', 'onchange' => 'computeLoan()' , 'min(1)' , 'max(10000000000)' )) !!} 
+                        {{--  <p>Loan Amount: $<input id="p" type="number" min="1" max="1000000" onchange="computeLoan()"></p> --}}
+                      </div>
+                      <div class="col-md-4" >
+                       {!! Form::label('rateInterest','Interest Rate', ['class'=>'form-label']) !!}
+                       {!! Form::label(null,null, ['style' => '  color: red;']) !!}
+                       {!! Form::text('r',isset($praposalChecklist->r) ? @$praposalChecklist->r : 18, array('class' => 'form-control', 'id'=>'r', 'min(0)' , 'max(100)' , 'value' => '1' , 'step' => '1', 'onchange' => 'computeLoan()' , 'placeholder' => '%' )) !!}
+                       {{--  <p>Interest Rate: <input id="r" type="number" min="0" max="100" value="1" step="1" onchange="computeLoan()">%</p> --}}
+                     </div>
                 {{--  <div class="col-md-4" >
                     {!! Form::label('noOfDays','No of Days', ['class'=>'form-label']) !!}
                     {!! Form::label(null,null, ['style' => '  color: red;']) !!}
@@ -159,27 +160,28 @@ echo "</pre>"*/;
                  <div class="col-md-4" >
                    {!! Form::label('tenor','Tenor', ['class'=>'form-label']) !!}
                    {!! Form::label(null,null, ['style' => '  color: red;']) !!}
-                   {!! Form::text('t',isset($praposalChecklist->t) ? @$praposalChecklist->t : null, array('class' => 'form-control', 'id'=>'t', 'min(1)' , 'max(72)' , 'value' => '1' , 'step' => '1', 'onchange' => 'computeLoan()' , 'placeholder' => 'No. of Tenor' )) !!}
+                   {!! Form::text('t',isset($praposalChecklist->t) ? @$praposalChecklist->t : 24, array('class' => 'form-control', 'id'=>'t', 'min(1)' , 'max(72)' , 'value' => '1' , 'step' => '1', 'onchange' => 'computeLoan()' , 'placeholder' => 'No. of Tenor' )) !!}
                    {{--     <p>Tenor: <input id="t" type="number" min="1" max="72" value="1" step="1" onchange="computeLoan()"></p> --}}
                  </div>
                  <div class="col-md-4" >
-                   {!! Form::label('loansanction','Moratorium', ['class'=>'form-label']) !!}
+                   {!! Form::label('Moratorium','Moratorium', ['class'=>'form-label']) !!}
                    <br>
                    {!! Form::label(null,null, ['style' => '  color: red;']) !!}
-                   {!! Form::text('loansanction','', array('class' => 'form-control', 'onchange' => 'computeLoan()')) !!}
+                   {!! Form::text('moratorium','3', array('class' => 'form-control', 'id'=>'moratorium','onchange' => 'computeLoan()')) !!}
                  </div>
                  <div class="col-md-4" >
-                   {!! Form::label('loansanction','Loan Disbursement Date', ['class'=>'form-label']) !!}
+                   {!! Form::label('loanDisDate','Loan Disbursement Date', ['class'=>'form-label']) !!}
                    <br>
                    {!! Form::label(null,null, ['style' => '  color: red;']) !!}
-                   {!! Form::text('loansanction',isset($praposalChecklist->loansanction) ? @$praposalChecklist->loansanction : null, array('class' => 'form-control', 'id'=>'date', 'onchange' => 'computeLoan()')) !!}
+                   {!! Form::text('loanDisDate',isset($praposalChecklist->loanDisDate) ? @$praposalChecklist->loanDisDate : null, array('class' => 'form-control', 'id'=>'loanDisDate', 'onchange' => 'computeLoan()')) !!}
                  </div>
-                 
                  <div class="col-md-4" > {{-- If Disbmnt Date is less than 20th each month EMI Start date is same month of end date --}}
-                   {!! Form::label('loansanction','EMI Start Date', ['class'=>'form-label']) !!}
+                   {!! Form::label('Emi Start Date','EMI Start Date', ['class'=>'form-label']) !!}
                    <br>
                    {!! Form::label(null,null, ['style' => '  color: red;']) !!}
-                   {!! Form::text('loansanction',isset($praposalChecklist->loansanction) ? @$praposalChecklist->loansanction : null, array('class' => 'form-control', 'id'=>'date', 'onchange' => 'computeLoan()')) !!}
+                   {!! Form::text('emiStartDate',isset($praposalChecklist->emiStartDate) ? @$praposalChecklist->emiStartDate : null, array('class' => 'form-control', 'id'=>'emiStartDate', 'onchange' => 'computeLoan()')) !!}
+                 </div> 
+                 <div class="card">
                  </div>
                  <div class="col-md-4" >
                    <input type='button'  class ="btn btn-info"  value='Calculate' onclick="showDays()">
@@ -190,77 +192,119 @@ echo "</pre>"*/;
          </div>
        </div>
      </div>
-   </div>
-   <div class="row">
-    <div class="col-md-12" style="margin-left:20px;">
-      <body>
-       <table id="repaymentSceduleTable"  style="width:100%">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Nos of days</th>
-            <th>Loan Outstanding</th>
-            <th>Interest Due</th>
-            <th>Principal Due</th>
-            <th>TDS</th>
-            <th>Net Interest</th>
-            <th>Net Amount Due</th>                   
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              {{--     <input class='onedate' type="date" onchange="showDays()" value="2019-04-30" /> --}}
-              {!! Form::text('date1',isset($praposalChecklist->date1) ? @$praposalChecklist->date1 : null, array('class' => 'form-control', 'id'=>'date', 'onchange' => 'computeLoan()')) !!}
+     {{-- Add Entries --}}
+     <div class="row">
+      <div class="col-md-12">
+        <div id="" class="form-group">
+          <div id="topcust" class="panel panel-success">
+            <div class="panel-heading">Add Monthly Entries</div>
+            <div class="panel-body">
+             <div class="row">
+              <div class="col-md-4">
+                <div class="form-group required">
+                  {!! Form::label('dateEntries','Payment Date', ['class'=>'control-label']) !!}
+                  {!! Form::text('dateEntries','', array('class' => 'form-control', 'id'=>'dateEntries', 'onchange' => '')) !!}
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group required">
+                  {!! Form::label(null,'Cheque No/UTR No') !!}
+                  {!! Form::label(null,$removeMandatory, ['style' => '  color: red;']) !!}
+                  {!! Form::text('dateEntries','', array('class' => 'form-control', 'id'=>'dateEntries', 'onchange' => '')) !!}
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group required">
+                  {!! Form::label(null,'Receipt / Amount') !!}
+                  {!! Form::label(null,$removeMandatory, ['style' => '  color: red;']) !!}
+                  {!! Form::text('dateEntries','', array('class' => 'form-control', 'id'=>'dateEntries', 'onchange' => '')) !!}
+                </div>
+              </div>
+
+ 
+              <div class="col-md-12" style="margin-left:20px;">
+                <div id="currentSection">
+                  <button type="submit" class="btn btn-alert btn-cons sme_button" value="Save" id="saveDetails" >Save Monthly Data</button>
+                
+                </div>
+              </div>
+
+
+            </div> 
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12" style="margin-left:20px;">
+        <body>
+         <table id="repaymentSceduleTable"  style="width:100%">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Nos of days</th>
+              <th>Loan Outstanding</th>
+              <th>Interest Due</th>
+              <th>Principal Due</th>
+              <th>TDS</th>
+              <th>Net Interest</th>
+              <th>Net Amount Due</th>                   
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                {{--     <input class='onedate' type="date" onchange="showDays()" value="2019-04-30" /> --}}
+                {!! Form::text('date1',isset($praposalChecklist->date1) ? @$praposalChecklist->date1 : null, array('class' => 'form-control', 'id'=>'date', 'onchange' => 'computeLoan()')) !!}
+              </td>
+              <td><h6 id="ls"></h6></td>
+              <td>{{-- <h6 id="os"></h6> --}}
+               {!! Form::text('os1', isset($praposalChecklist->os1) ? @$praposalChecklist->os1 : null, array('class' => 'form-control', 'id'=>'os1')) !!}
+             </td>
+             <td>{{-- <h6 id="interestdue"></h6> --}}
+               interestdue1 {!! Form::text('interestdue1', isset($praposalChecklist->interestdue1) ? @$praposalChecklist->interestdue1 : null, array('class' => 'form-control', 'id'=>'interestdue1')) !!}
+             </td>
+             <td>{{-- <h6 id="pd"></h6> --}}
+               {!! Form::text('pd1', isset($praposalChecklist->pd1) ? @$praposalChecklist->pd1 : null, array('class' => 'form-control', 'id'=>'pd1')) !!}
+             </td>
+             <td>{{-- <h6 id="tds"></h6> --}}
+              {!! Form::text('tds1', isset($praposalChecklist->tds1) ? @$praposalChecklist->tds1 : null, array('class' => 'form-control', 'id'=>'tds1')) !!}
             </td>
-            <td><h6 id="ls"></h6></td>
-            <td>{{-- <h6 id="os"></h6> --}}
-             {!! Form::text('os1', isset($praposalChecklist->os1) ? @$praposalChecklist->os1 : null, array('class' => 'form-control', 'id'=>'os1')) !!}
+            <td>{{-- <h6 id="netinterest"></h6> --}}
+              {!! Form::text('netinterest1', isset($praposalChecklist->netinterest1) ? @$praposalChecklist->netinterest1 : null, array('class' => 'form-control', 'id'=>'netinterest1')) !!}
+            </td>
+            <td>{{-- <h6 id="netamtdue"></h6> --}}
+              {!! Form::text('netamtdue1', isset($praposalChecklist->netamtdue1) ? @$praposalChecklist->netamtdue1 : null, array('class' => 'form-control', 'id'=>'netamtdue1')) !!}
+            </td>
+          </tr>
+          <tr>  {{-- 2nd row --}}
+           <td>
+             {{--  <input class='twodate' type="date" onchange="showDays()" value="2019-05-31" /> --}}
+             {!! Form::text('date2',isset($praposalChecklist->date2) ? @$praposalChecklist->date2 : null, array('class' => 'form-control', 'id'=>'date2', 'onchange' => 'computeLoan()')) !!}
            </td>
-           <td>{{-- <h6 id="interestdue"></h6> --}}
-            {!! Form::text('interestdue1', isset($praposalChecklist->interestdue1) ? @$praposalChecklist->interestdue1 : null, array('class' => 'form-control', 'id'=>'interestdue1')) !!}
+           <td><h6 id="days"></h6></td>
+           <td>{{-- <h6 id="os"></h6> --}}
+            {!! Form::text('os2', isset($praposalChecklist->os2) ? @$praposalChecklist->os2 : null, array('class' => 'form-control', 'id'=>'os2')) !!}
+          </td>
+          <td>{{-- <h6 id="interestdue"></h6> --}}
+            {!! Form::text('interestdue2', isset($praposalChecklist->interestdue2) ? @$praposalChecklist->interestdue2 : null, array('class' => 'form-control', 'id'=>'interestdue2')) !!}
           </td>
           <td>{{-- <h6 id="pd"></h6> --}}
-           {!! Form::text('pd1', isset($praposalChecklist->pd1) ? @$praposalChecklist->pd1 : null, array('class' => 'form-control', 'id'=>'pd1')) !!}
-         </td>
-         <td>{{-- <h6 id="tds"></h6> --}}
-          {!! Form::text('tds1', isset($praposalChecklist->tds1) ? @$praposalChecklist->tds1 : null, array('class' => 'form-control', 'id'=>'tds1')) !!}
-        </td>
-        <td>{{-- <h6 id="netinterest"></h6> --}}
-          {!! Form::text('netinterest1', isset($praposalChecklist->netinterest1) ? @$praposalChecklist->netinterest1 : null, array('class' => 'form-control', 'id'=>'netinterest1')) !!}
-        </td>
-        <td>{{-- <h6 id="netamtdue"></h6> --}}
-          {!! Form::text('netamtdue1', isset($praposalChecklist->netamtdue1) ? @$praposalChecklist->netamtdue1 : null, array('class' => 'form-control', 'id'=>'netamtdue1')) !!}
-        </td>
-      </tr>
-      <tr>  {{-- 2nd row --}}
-       <td>
-         {{--  <input class='twodate' type="date" onchange="showDays()" value="2019-05-31" /> --}}
-         {!! Form::text('date2',isset($praposalChecklist->date2) ? @$praposalChecklist->date2 : null, array('class' => 'form-control', 'id'=>'date', 'onchange' => 'computeLoan()')) !!}
-       </td>
-       <td><h6 id="days"></h6></td>
-       <td>{{-- <h6 id="os"></h6> --}}
-        {!! Form::text('os2', isset($praposalChecklist->os2) ? @$praposalChecklist->os2 : null, array('class' => 'form-control', 'id'=>'os2')) !!}
-      </td>
-      <td>{{-- <h6 id="interestdue"></h6> --}}
-        {!! Form::text('interestdue2', isset($praposalChecklist->interestdue2) ? @$praposalChecklist->interestdue2 : null, array('class' => 'form-control', 'id'=>'interestdue2')) !!}
-      </td>
-      <td>{{-- <h6 id="pd"></h6> --}}
-        {!! Form::text('pd2', isset($praposalChecklist->pd2) ? @$praposalChecklist->pd2 : null, array('class' => 'form-control', 'id'=>'pd2')) !!}
-      </td>
-      <td>{{-- <h6 id="tds"></h6> --}}
-        {!! Form::text('tds2', isset($praposalChecklist->tds2) ? @$praposalChecklist->tds2 : null, array('class' => 'form-control', 'id'=>'tds2')) !!}
-      </td>
-      <td>{{-- <h6 id="netinterest"></h6> --}}
-        {!! Form::text('netinterest2', isset($praposalChecklist->netinterest2) ? @$praposalChecklist->netinterest2 : null, array('class' => 'form-control', 'id'=>'netinterest2')) !!}
-      </td>
-      <td>{{-- <h6 id="netamtdue"></h6> --}}
-        {!! Form::text('netamtdue2', isset($praposalChecklist->netamtdue2) ? @$praposalChecklist->netamtdue2 : null, array('class' => 'form-control', 'id'=>'netamtdue2')) !!}
-      </td>
-    </tr>
-  </tbody>
-</table>
-</body>
+            {!! Form::text('pd2', isset($praposalChecklist->pd2) ? @$praposalChecklist->pd2 : null, array('class' => 'form-control', 'id'=>'pd2')) !!}
+          </td>
+          <td>{{-- <h6 id="tds"></h6> --}}
+            {!! Form::text('tds2', isset($praposalChecklist->tds2) ? @$praposalChecklist->tds2 : null, array('class' => 'form-control', 'id'=>'tds2')) !!}
+          </td>
+          <td>{{-- <h6 id="netinterest"></h6> --}}
+            {!! Form::text('netinterest2', isset($praposalChecklist->netinterest2) ? @$praposalChecklist->netinterest2 : null, array('class' => 'form-control', 'id'=>'netinterest2')) !!}
+          </td>
+          <td>{{-- <h6 id="netamtdue"></h6> --}}
+            {!! Form::text('netamtdue2', isset($praposalChecklist->netamtdue2) ? @$praposalChecklist->netamtdue2 : null, array('class' => 'form-control', 'id'=>'netamtdue2')) !!}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
 </div>
 </div>
 <br>
@@ -278,8 +322,7 @@ echo "</pre>"*/;
 {{-- <link href="{{ asset('/css/select2.min.css') }}" rel="stylesheet">
 <script src="{{ asset('/js/select2.min.js') }}" type="text/javascript"></script> --}}
 <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js" type="text/javascript"></script>
-<script src="https://momentjs.com/downloads/moment-with-locales.min.js" type="text/javascript"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
   {{--       <meta name="viewport" content="width=device-width">
   <script src="https://code.jquery.com/jquery.min.js"></script> --}}
 {{--         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
@@ -295,58 +338,73 @@ echo "</pre>"*/;
   <link rel="stylesheet" href="/resources/demos/style.css">
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script> --}}
-
   <script>
     $(document).ready(function() {
       $('#repaymentSceduleTable').DataTable( {
         "scrollX": true
       } );
     } );
-
-    
-    jQuery(document).ready(function ($) {
-      $('#date').datepicker({
-        changeMonth: true,
-        changeYear: true,
-        showButtonPanel: true,
-        dateFormat: 'yy-mm-dd',
-        yearRange: '2017:2025',
-        monthNames: ["1","2","3","4","5","6","7","8","9","10","11","12"],
-        monthNamesShort: ["Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec"],
-        onClose: function(dateText, inst) {
-          var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
-          var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
-          $(this).datepicker('setDate', new Date(year, month, date));
-        },
-      })
-    });
-    $('#saveDetails').click(function (e){
-      if(validateForm('#divTab_sub')){
-        return true;
-      }else{
-        e.preventDefault();
-      }
-    });
-
+/*jQuery(document).ready(function ($) {
+    $( "#datepicker" ).datepicker();
+  } );*/
+  jQuery(document).ready(function ($) {
+    $('#loanDisDate').datepicker({
+     changeMonth: true,
+     changeYear: true,
+     showButtonPanel: true,
+     dateFormat: 'yy-mm-dd',
+     yearRange: '2019:2020',
+   })
+    $('#emiStartDate').datepicker({
+     changeMonth: true,
+     changeYear: true,
+     showButtonPanel: true,
+     dateFormat: 'yy-mm-dd',
+     yearRange: '2019:2020',
+   })
+    $('#dateEntries').datepicker({
+     changeMonth: true,
+     changeYear: true,
+     showButtonPanel: true,
+     dateFormat: 'yy-mm-dd',
+     yearRange: '2019:2020',
+   })
+  });
+  $('#saveDetails').click(function (e){
+    if(validateForm('#divTab_sub')){
+      return true;
+    }else{
+      e.preventDefault();
+    }
+  });
  /*   function showTable(){
       document.getElementById('repaymentSceduleTable').style.visibility = "visible";
     }
     function hideTable(){
       document.getElementById('repaymentSceduleTable').style.visibility = "hidden";
     }*/
-    
 // This script is explained line by line in depth in the following video:
 // http://www.developphp.com/view.php?tid=1389
 function computeLoan(){
-  // alert("os2");
-  var p = document.getElementById('p').value;
-  //  alert(p);
-  var r = document.getElementById('r').value;
-  var n = document.getElementById('n').value;
-  var t = document.getElementById('t').value;
-  var os = document.getElementById('os').value;
-
-  var interestdue = document.getElementById('interestdue').value;
+ //alert("os2");
+  var p = document.getElementById('p').value;  //Loan Amount Sanctioned 
+  var r = document.getElementById('r').value;  //Interest Ra te 
+   //var n = document.getElementById('n').value;  // 
+ var t = document.getElementById('t').value;  //Tenor
+  var moratorium = document.getElementById('moratorium').value;  //moratorium
+/*  $("#emiStartDate").change(function(){
+   $("#date").val($(this).val());
+ }); 
+  $("#emiStartDate").change(function(){
+   $("#date2").val($(this).val());
+ });*/
+  //var a =  $("date").val();
+  var pd = document.getElementById('date').value;
+  /*var b= $("#emiStartDate").val($(this).val());
+  var c=a.diff(b,'days');*/
+  //alert(pd);
+  //var os = document.getElementById('os').value;
+/*  var interestdue = document.getElementById('interestdue').value;
   var pd = document.getElementById('pd').value;
   var tds = document.getElementById('tds').value;
   var netinterest = document.getElementById('netinterest').value;
@@ -370,7 +428,6 @@ function computeLoan(){
   //second row
   os2 = document.getElementById("os2");
   os2.innerHTML =((p)-(p/t));
-
   alert(os2);
   interestdue2 = document.getElementById("interestdue2");
   interestdue2.innerHTML =Math.round(p*r*n/365)/100;
@@ -383,36 +440,43 @@ function computeLoan(){
   netamtdue2 = document.getElementById("netamtdue2");
   // netamtdue.innerHTML = ((Math.round(p*r*n/365)/100)+(Math.round(p/t))-(Math.round(p*r*n/365)/100*0.1));
   var round =Math.round(netamtdue2);
-  netamtdue2.innerHTML = 75399;
+  netamtdue2.innerHTML = 75399;*/
 }
-
-
-
 function showDays(){
-   // alert("days");
-   var startminus = $('.ls').val();
+  alert("hi");
+/*  var a = moment(document.getElementById('emiStartDate').value);
+  var b =moment(document.getElementById('loanDisDate').value);
+  var c = a.diff(b,'days');*/
+    //$("#date2").val($(c).val());
+    alert(c);
+ //alert("days");
+  /*   var a = document.getElementById('date').value;
+  var b=  $("emiStartDate").val();
+  var c = a.diff(b,'days');
+ alert(c);
+ alert("days");*/
+ /*  var startminus = $('.ls').val();
    var start = $('.onedate').val();
    var end2 = $('.twodate').val();
    var end3 = $('.threedate').val();
-   
    var fisrtDay = new Date(startminus);
    var startDay = new Date(start);
-   var endDay2 = new Date(end2);
+   var endDay2 = new Date(end2);*/
 //   var endDay6 = new Date(end6);
-var millisecondsPerDay = 1000 * 60 * 60 * 24;
+/*var millisecondsPerDay = 1000 * 60 * 60 * 24;
 var millisBetweenls = startDay.getTime() - fisrtDay.getTime();
 var ls = millisBetweenls / millisecondsPerDay;
 var millisBetween = endDay2.getTime() - startDay.getTime();
 var days = millisBetween / millisecondsPerDay;
 var millisBetween2 = endDay3.getTime() - endDay2.getTime();
-var days2 = millisBetween2 / millisecondsPerDay;
-
+var days2 = millisBetween2 / millisecondsPerDay;*/
+/*
 ls = document.getElementById("ls");
 ls.innerHTML =millisBetweenls / millisecondsPerDay;    
 days = document.getElementById("days");
 days.innerHTML =millisBetween / millisecondsPerDay;
 days2 = document.getElementById("days2");
-days2.innerHTML = millisBetween2 / millisecondsPerDay;
-
+days2.innerHTML = millisBetween2 / millisecondsPerDay;*/
 }
 </script>
+ --}}

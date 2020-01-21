@@ -125,12 +125,15 @@ class LoansController extends BaseLoansController
     }
     $userPr = UserProfile::where('user_id', '=', $userID)->first();
     $userProfile = UserProfile::with('user')->find($userPr->id);
+
     //dd($userProfile);
+
     if (isset($userID)) {
       $mobileAppEmail = DB::table('mobile_app_data')->where('Email', $userEmail)
       ->where('status', 0)
       ->first();
     }
+
     if (isset($mobileAppEmail)) {
       $amount = $mobileAppEmail->ReqAmt;
     }
@@ -493,6 +496,7 @@ class LoansController extends BaseLoansController
     }
     $deletedQuestionsLoan = $this->getDeletedQuestionLoan($loan, $loanType, $amount);
     $deletedQuestionHelper = new DeletedQuestionsHelper($deletedQuestionsLoan);
+    
     //getting borrowers profile
     if (isset($loanId)) {
       $loan = Loan::find($loanId);
@@ -6404,8 +6408,8 @@ public function getCashFlowCriteria($loanId)
     ->where('status', 0)
     ->first();
     $mobileAppData = DB::table('user_profiles')->where('user_id', $userID)->first();
-    $mobileAppFirm_Name = $mobileAppData->name_of_firm;
-    $mobileEntityType = $mobileAppData->owner_entity_type;
+//    $mobileAppFirm_Name = $mobileAppData->name_of_firm;
+  //  $mobileEntityType = $mobileAppData->owner_entity_type;
   }
 
 
