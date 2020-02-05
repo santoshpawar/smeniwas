@@ -42,7 +42,7 @@ class ManualBankAllocationsController extends BaseAdminController {
     }
 
     public function getCreate(){
-       $loansList = [NULL => ''] + Loan::where('status', '=', 4)->get()->lists('id', 'id')->all();
+       $loansList = [NULL => ''] + Loan::where('status', '=', 22)->get()->lists('id', 'id')->all();
        $banksList = [NULL => ''] + BankMasterData::where('status','=', 1)->get()->lists('name','id')->all();
 
         $forUser = Auth::getUser();

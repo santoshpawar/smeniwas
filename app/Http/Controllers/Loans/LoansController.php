@@ -9,6 +9,7 @@ use App\Helpers\UploadDocHelper;
 use App\Helpers\validLoanUrlhelper;
 use App\Models\Address;
 use App\Models\Business;
+use Carbon\Carbon;
 use App\Models\Loan\AnalystModel\AnalystModelCategory;
 use App\Models\Loan\AnalystModel\AnalystModelRating;
 use App\Models\Loan\AnalystModel\AnalystModelRatingDetails;
@@ -42,7 +43,9 @@ use App\Models\LoanPromoterKycdtls;
 use App\Models\Loan\PraposalBackground;
 use App\Models\Loan\PraposalDetails;
 use App\Models\Loan\PraposalChecklists;
-use App\Models\Loan\LoanRepayments;
+//use App\Models\Loan\LoanRepayments;
+use App\Models\Loan\LoanRepayment\LoanRepayments;
+use App\Models\Loan\LoanRepayment\LoanRepaymentsDetails;
 
 use App\Models\Loan\Upload;
 use App\Models\CompanyPosition;
@@ -83,6 +86,9 @@ use App\Helpers\DeletedQuestionsHelper;
 use App\Models\Loan\LoansStatus;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
+
+
+use App\Models\Loan\LoanRepayment\LoanRepaymentsMaster;
 
 use Storage;
 use Auth;
@@ -603,321 +609,321 @@ class LoansController extends BaseLoansController
       $messagesArr['com_business_type.required'] = 'Business Type is required in KYC Details Tab.';
     }
 
-if ($deletedQuestionHelper->isQuestionValid("A1.3")) {
-  if (isset($userProfile) && $userProfile->owner_entity_type == "Pvt Ltd Company") {
-    $fieldsArr['com_cin_no'] = $input['com_cin_no'];
-    $rulesArr['com_cin_no'] = 'required';
-    $messagesArr['com_cin_no.required'] = 'Cin number is required in KYC Details Tab.';
-  }
-}
-$isSME = $user->isSME();
-if ($deletedQuestionHelper->isQuestionValid("A1.4") && !$isSME) {
-  $fieldsArr['com_service_tax_no'] = $input['com_service_tax_no'];
-  $rulesArr['com_service_tax_no'] = 'required';
-  $messagesArr['com_service_tax_no.required'] = 'Service tax no is required in KYC Details Tab.';
-}
-if ($deletedQuestionHelper->isQuestionValid("A2")) {
-  $fieldsArr['com_industry_segment'] = $input['com_industry_segment'];
-  $rulesArr['com_industry_segment'] = 'required';
-  $messagesArr['com_industry_segment.required'] = 'Industry Segment is required in Business Background Tab.';
-}
+    if ($deletedQuestionHelper->isQuestionValid("A1.3")) {
+      if (isset($userProfile) && $userProfile->owner_entity_type == "Pvt Ltd Company") {
+        $fieldsArr['com_cin_no'] = $input['com_cin_no'];
+        $rulesArr['com_cin_no'] = 'required';
+        $messagesArr['com_cin_no.required'] = 'Cin number is required in KYC Details Tab.';
+      }
+    }
+    $isSME = $user->isSME();
+    if ($deletedQuestionHelper->isQuestionValid("A1.4") && !$isSME) {
+      $fieldsArr['com_service_tax_no'] = $input['com_service_tax_no'];
+      $rulesArr['com_service_tax_no'] = 'required';
+      $messagesArr['com_service_tax_no.required'] = 'Service tax no is required in KYC Details Tab.';
+    }
+    if ($deletedQuestionHelper->isQuestionValid("A2")) {
+      $fieldsArr['com_industry_segment'] = $input['com_industry_segment'];
+      $rulesArr['com_industry_segment'] = 'required';
+      $messagesArr['com_industry_segment.required'] = 'Industry Segment is required in Business Background Tab.';
+    }
 
 
 
 
-$validator = Validator::make($fieldsArr, $rulesArr, $messagesArr);
-if ($validator->fails()) {
-  return Redirect::back()->withErrors($validator)->withInput();
-} else {
+    $validator = Validator::make($fieldsArr, $rulesArr, $messagesArr);
+    if ($validator->fails()) {
+      return Redirect::back()->withErrors($validator)->withInput();
+    } else {
   //$user = Auth::getUser();
   //$userProfile =  Auth::getUser()->userProfile();
-  $input['user_id'] = $user->id;
-  if (isset($loanId)) {
-    if (isset($loans)) {
-      $salesAreaDetailId = $loans->id;
-    } else {
-      $salesAreaDetailId = null;
-    }
-  }
+      $input['user_id'] = $user->id;
+      if (isset($loanId)) {
+        if (isset($loans)) {
+          $salesAreaDetailId = $loans->id;
+        } else {
+          $salesAreaDetailId = null;
+        }
+      }
 
 
-  $loan = Loan::updateOrCreate(['id' => $salesAreaDetailId], $input);
+      $loan = Loan::updateOrCreate(['id' => $salesAreaDetailId], $input);
 
 
-  $loan->status = "Pending";
-  if (isset($userProfile)) {
-    $loan->turnover = $userProfile->latest_turnover;
-  }
-  $loanId = $loan->id;
-  $loan->save();
-  $loansStatus = LoansStatus::updateOrCreate(['loan_id' => $loan->id], ['loan_id' => $loanId, 'background' => 'Y']);
- 
-
-  $loansStatus->save();
-  BusinessOperationalDetail::updateOrCreate(['loan_id' => $loan->id], $input);
-  $this->getLoansStatus($loanId);
+      $loan->status = "Pending";
+      if (isset($userProfile)) {
+        $loan->turnover = $userProfile->latest_turnover;
+      }
+      $loanId = $loan->id;
+      $loan->save();
+      $loansStatus = LoansStatus::updateOrCreate(['loan_id' => $loan->id], ['loan_id' => $loanId, 'background' => 'Y']);
 
 
-  $user = Auth::user();
-  if (isset($user)) {
-    $userID = $user->id;
-    $userEmail = $user->email;
-  }
-  if (isset($userID)) {
-    $mobileAppEmail = DB::table('mobile_app_data')->where('Email', $userEmail)
-    ->where('status', 0)
-    ->first();
-  }
-  if (isset($mobileAppEmail)) {
-    $fileHelper = new FileHelper();
-    $directory = $userID . "/" . $loanId;
-    $uploadDetails = null;
-    $mobileAppDataID = $mobileAppEmail->id;
+      $loansStatus->save();
+      BusinessOperationalDetail::updateOrCreate(['loan_id' => $loan->id], $input);
+      $this->getLoansStatus($loanId);
+
+
+      $user = Auth::user();
+      if (isset($user)) {
+        $userID = $user->id;
+        $userEmail = $user->email;
+      }
+      if (isset($userID)) {
+        $mobileAppEmail = DB::table('mobile_app_data')->where('Email', $userEmail)
+        ->where('status', 0)
+        ->first();
+      }
+      if (isset($mobileAppEmail)) {
+        $fileHelper = new FileHelper();
+        $directory = $userID . "/" . $loanId;
+        $uploadDetails = null;
+        $mobileAppDataID = $mobileAppEmail->id;
     //                  Promoter Tabs mobile_app_data
-    $degree = $mobileAppEmail->Degree;
-    $cibilScore = $mobileAppEmail->CibilScore;
-    $independent = $mobileAppEmail->Independent;
-    $mobilePromoType = $mobileAppEmail->PromoType;
-    $ownedVehicle = $mobileAppEmail->OwnedVehicle;
-    $vehicleMarketValue = $mobileAppEmail->MarketValue;
-    $ownedProperty = $mobileAppEmail->OwnedProperty;
-    $mobileLenderName = $mobileAppEmail->LenderName;
-    $mobileOutstandingAmt = $mobileAppEmail->OutstandingAmt;
-    $mobileMonthlyEmi = $mobileAppEmail->MonthlyEmi;
-    $mobileLiability = $mobileAppEmail->Liability;
+        $degree = $mobileAppEmail->Degree;
+        $cibilScore = $mobileAppEmail->CibilScore;
+        $independent = $mobileAppEmail->Independent;
+        $mobilePromoType = $mobileAppEmail->PromoType;
+        $ownedVehicle = $mobileAppEmail->OwnedVehicle;
+        $vehicleMarketValue = $mobileAppEmail->MarketValue;
+        $ownedProperty = $mobileAppEmail->OwnedProperty;
+        $mobileLenderName = $mobileAppEmail->LenderName;
+        $mobileOutstandingAmt = $mobileAppEmail->OutstandingAmt;
+        $mobileMonthlyEmi = $mobileAppEmail->MonthlyEmi;
+        $mobileLiability = $mobileAppEmail->Liability;
     //                  Financials Tab mobile_app_data
-    $DefaultNoOfExistingLoan = 1;
-    $MobileBankName = $mobileAppEmail->BankName;
-    $MobileAmount = $mobileAppEmail->Amount;
+        $DefaultNoOfExistingLoan = 1;
+        $MobileBankName = $mobileAppEmail->BankName;
+        $MobileAmount = $mobileAppEmail->Amount;
     //                  Business Tab mobile_app_data
-    $officePremiseOwned = $mobileAppEmail->OfficePremiseOwned;
-    $officePremiseRented = $mobileAppEmail->OfficePremiseRented;
-    $manufacturePremise = $mobileAppEmail->ManufacturePremise;
-    $mobilecust1 = $mobileAppEmail->cust1;
-    $mobilesale1 = $mobileAppEmail->sale1;
-    $mobileyear1 = $mobileAppEmail->year1;
-    $mobilecust2 = $mobileAppEmail->cust2;
-    $mobilesale2 = $mobileAppEmail->sale2;
-    $mobileyear2 = $mobileAppEmail->year2;
-    $mobilecust3 = $mobileAppEmail->cust3;
-    $mobilesale3 = $mobileAppEmail->sale3;
-    $mobileyear3 = $mobileAppEmail->year3;
-    if (isset($officePremiseOwned) && $officePremiseOwned != 0) {
-      $officepremiseType = 1;
-    } else if (isset($officePremiseRented) && $officePremiseRented != 0) {
-      $officepremiseType = 2;
-    }
+        $officePremiseOwned = $mobileAppEmail->OfficePremiseOwned;
+        $officePremiseRented = $mobileAppEmail->OfficePremiseRented;
+        $manufacturePremise = $mobileAppEmail->ManufacturePremise;
+        $mobilecust1 = $mobileAppEmail->cust1;
+        $mobilesale1 = $mobileAppEmail->sale1;
+        $mobileyear1 = $mobileAppEmail->year1;
+        $mobilecust2 = $mobileAppEmail->cust2;
+        $mobilesale2 = $mobileAppEmail->sale2;
+        $mobileyear2 = $mobileAppEmail->year2;
+        $mobilecust3 = $mobileAppEmail->cust3;
+        $mobilesale3 = $mobileAppEmail->sale3;
+        $mobileyear3 = $mobileAppEmail->year3;
+        if (isset($officePremiseOwned) && $officePremiseOwned != 0) {
+          $officepremiseType = 1;
+        } else if (isset($officePremiseRented) && $officePremiseRented != 0) {
+          $officepremiseType = 2;
+        }
     //                  Security Tab mobile_app_data
-    $mobileAppCollateralType = $mobileAppEmail->CollateralType;
-    $mobileAppPropType = $mobileAppEmail->PropType;
-    $mobileAppColAddress = $mobileAppEmail->ColAddress;
-    $mobileAppColCity = $mobileAppEmail->ColCity;
-    $mobileAppColPincode = $mobileAppEmail->ColPincode;
-    $mobileAppLatestVal = $mobileAppEmail->LatestVal;
+        $mobileAppCollateralType = $mobileAppEmail->CollateralType;
+        $mobileAppPropType = $mobileAppEmail->PropType;
+        $mobileAppColAddress = $mobileAppEmail->ColAddress;
+        $mobileAppColCity = $mobileAppEmail->ColCity;
+        $mobileAppColPincode = $mobileAppEmail->ColPincode;
+        $mobileAppLatestVal = $mobileAppEmail->LatestVal;
     //                  Upload Doc Tab mobile_app_data
-    $mobileAppCompFinUpd = $mobileAppEmail->comp_fin_upd;
-    $mobileAppCompPanUpd = $mobileAppEmail->comp_pan_upd;
-    $mobileAppCompAddrUpd = $mobileAppEmail->comp_addr_upd;
-    $mobileAppPromAddrUpd = $mobileAppEmail->prom_addr_upd;
-    $mobileAppPromPanUpd = $mobileAppEmail->prom_pan_upd;
-    $mobileAppPromBankUpd = $mobileAppEmail->prom_bank_upd;
-    $mobileAppPromCibilUpd = $mobileAppEmail->prom_cibil_upd;
-  }
-  if (isset($mobileAppDataID)) {
+        $mobileAppCompFinUpd = $mobileAppEmail->comp_fin_upd;
+        $mobileAppCompPanUpd = $mobileAppEmail->comp_pan_upd;
+        $mobileAppCompAddrUpd = $mobileAppEmail->comp_addr_upd;
+        $mobileAppPromAddrUpd = $mobileAppEmail->prom_addr_upd;
+        $mobileAppPromPanUpd = $mobileAppEmail->prom_pan_upd;
+        $mobileAppPromBankUpd = $mobileAppEmail->prom_bank_upd;
+        $mobileAppPromCibilUpd = $mobileAppEmail->prom_cibil_upd;
+      }
+      if (isset($mobileAppDataID)) {
     //                  For Promoter Tab data inserting from mobile_app_data
-    $promoterDetails = PromoterDetails::updateOrCreate(['loan_id' => $loanId], [
-      'fin_vehiclesowned' => $ownedVehicle,
-      'fin_vehiclesowned_marketvalue' => $vehicleMarketValue, 'fin_propertiesowned' => $ownedProperty, 'borrowloan_bankname' => $mobileLenderName,
-      'borrowloan_amtoutstanding' => $mobileOutstandingAmt, 'borrowloan_monthlyemi' => $mobileMonthlyEmi, 'borrowloan_totalliability' => $mobileLiability,
-      'othr_eduprofdegree' => $degree, 'othr_promoterare' => $mobilePromoType, 'othr_noofindependent' => $independent,
-      'othr_doyouknowcibil' => 'Yes', 'othr_cibilscore' => $cibilScore
-    ]);
+        $promoterDetails = PromoterDetails::updateOrCreate(['loan_id' => $loanId], [
+          'fin_vehiclesowned' => $ownedVehicle,
+          'fin_vehiclesowned_marketvalue' => $vehicleMarketValue, 'fin_propertiesowned' => $ownedProperty, 'borrowloan_bankname' => $mobileLenderName,
+          'borrowloan_amtoutstanding' => $mobileOutstandingAmt, 'borrowloan_monthlyemi' => $mobileMonthlyEmi, 'borrowloan_totalliability' => $mobileLiability,
+          'othr_eduprofdegree' => $degree, 'othr_promoterare' => $mobilePromoType, 'othr_noofindependent' => $independent,
+          'othr_doyouknowcibil' => 'Yes', 'othr_cibilscore' => $cibilScore
+        ]);
     //                  For Financial Tab data inserting from mobile_app_data
-    $loan = Loan::updateOrCreate(['id' => $loanId], [
-      'fin_numofexistingloan' => $DefaultNoOfExistingLoan,
-      'fin_doyouknowcibil' => 'Yes', 'fin_cibilscore' => $cibilScore
-    ]);
-    DB::table('loans_existingloan_details')->where('loan_id', '=', $loanId)->delete();
-    DB::table('loans_existingloan_details')->insert([
-      'loan_id' => $loanId,
-      'name' => $MobileBankName,
-      'amount_outstanding' => $MobileAmount,
-    ]);
+        $loan = Loan::updateOrCreate(['id' => $loanId], [
+          'fin_numofexistingloan' => $DefaultNoOfExistingLoan,
+          'fin_doyouknowcibil' => 'Yes', 'fin_cibilscore' => $cibilScore
+        ]);
+        DB::table('loans_existingloan_details')->where('loan_id', '=', $loanId)->delete();
+        DB::table('loans_existingloan_details')->insert([
+          'loan_id' => $loanId,
+          'name' => $MobileBankName,
+          'amount_outstanding' => $MobileAmount,
+        ]);
     //                  For Business Tab data inserting from mobile_app_data
-    BusinessOperationalDetail::updateOrCreate(['loan_id' => $loanId], [
-      'officepremise_type' => $officepremiseType,
-      'approx_value' => $officePremiseOwned, 'monthly_rentpaid' => $officePremiseRented, 'mfgpremise_type' => 'owned',
-      'approx_land_value' => $manufacturePremise, 'top3_custname_1' => $mobilecust1, 'top3_annsales_1' => $mobilesale1,
-      'top3_relationsince_1' => $mobileyear1, 'top3_custname_2' => $mobilecust2, 'top3_annsales_2' => $mobilesale2,
-      'top3_relationsince_2' => $mobileyear2, 'top3_custname_3' => $mobilecust3, 'top3_annsales_3' => $mobilesale3,
-      'top3_relationsince_3' => $mobileyear3
-    ]);
+        BusinessOperationalDetail::updateOrCreate(['loan_id' => $loanId], [
+          'officepremise_type' => $officepremiseType,
+          'approx_value' => $officePremiseOwned, 'monthly_rentpaid' => $officePremiseRented, 'mfgpremise_type' => 'owned',
+          'approx_land_value' => $manufacturePremise, 'top3_custname_1' => $mobilecust1, 'top3_annsales_1' => $mobilesale1,
+          'top3_relationsince_1' => $mobileyear1, 'top3_custname_2' => $mobilecust2, 'top3_annsales_2' => $mobilesale2,
+          'top3_relationsince_2' => $mobileyear2, 'top3_custname_3' => $mobilecust3, 'top3_annsales_3' => $mobilesale3,
+          'top3_relationsince_3' => $mobileyear3
+        ]);
     //                  For Security Tab data inserting from mobile_app_data
-    SecurityDetail::updateOrCreate(['loan_id' => $loanId], [
-      'collateral_type' => $mobileAppPropType,
-      'area' => $mobileAppColAddress, 'city' => $mobileAppColCity, 'pincode' => $mobileAppColPincode,
-      'latest_valuation' => $mobileAppLatestVal, 'occupied_type' => $mobileAppCollateralType
-    ]);
+        SecurityDetail::updateOrCreate(['loan_id' => $loanId], [
+          'collateral_type' => $mobileAppPropType,
+          'area' => $mobileAppColAddress, 'city' => $mobileAppColCity, 'pincode' => $mobileAppColPincode,
+          'latest_valuation' => $mobileAppLatestVal, 'occupied_type' => $mobileAppCollateralType
+        ]);
     //                  For Upload Doc tab datat inserting from mobile_app_data
     //                  For Financials Reports (FY2014-15) field of upload doc tab
-    if (isset($mobileAppCompFinUpd)) {
-      $file = $mobileAppCompFinUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'FY2014-15' . '_' . $file;
-      $fieldName = $mobileAppCompFinUpd;
-      if (!isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['finyear_file1_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+        if (isset($mobileAppCompFinUpd)) {
+          $file = $mobileAppCompFinUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'FY2014-15' . '_' . $file;
+          $fieldName = $mobileAppCompFinUpd;
+          if (!isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['finyear_file1_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
     //new
 
         if (isset($mobileAppCompFinUpd)) {
-      $file = $mobileAppCompFinUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'FY2014-15' . '_' . $file;
-      $fieldName = $mobileAppCompFinUpd;
-      if (!isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['other_file1_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+          $file = $mobileAppCompFinUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'FY2014-15' . '_' . $file;
+          $fieldName = $mobileAppCompFinUpd;
+          if (!isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['other_file1_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
 //end new
 
     //                  For company kyc & financial-> kyc details-> PAN card field of upload doc tab
-    if (isset($mobileAppCompPanUpd)) {
-      $file = $mobileAppCompPanUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'company_pancard' . '_' . $file;
-      $fieldName = $mobileAppCompPanUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['pancard_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+        if (isset($mobileAppCompPanUpd)) {
+          $file = $mobileAppCompPanUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'company_pancard' . '_' . $file;
+          $fieldName = $mobileAppCompPanUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['pancard_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
 
     //new
         if (isset($mobileAppCompPanUpd)) {
-      $file = $mobileAppCompPanUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'moa_company' . '_' . $file;
-      $fieldName = $mobileAppCompPanUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['moa_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+          $file = $mobileAppCompPanUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'moa_company' . '_' . $file;
+          $fieldName = $mobileAppCompPanUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['moa_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
 
     //end new
     //                  For company kyc & financial-> kyc details-> Address Proof field of upload doc tab
-    if (isset($mobileAppCompAddrUpd)) {
-      $file = $mobileAppCompAddrUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'company_address_proof' . '_' . $file;
-      $fieldName = $mobileAppCompAddrUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['addproof_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+        if (isset($mobileAppCompAddrUpd)) {
+          $file = $mobileAppCompAddrUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'company_address_proof' . '_' . $file;
+          $fieldName = $mobileAppCompAddrUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['addproof_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
     //new
         if (isset($mobileAppCompAddrUpd)) {
-      $file = $mobileAppCompAddrUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'gst_company' . '_' . $file;
-      $fieldName = $mobileAppCompAddrUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['gst_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+          $file = $mobileAppCompAddrUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'gst_company' . '_' . $file;
+          $fieldName = $mobileAppCompAddrUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['gst_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
 
     //end new
     //                  For promoter kyc & financial-> kyc details-> address proof field of upload doc tab
-    if (isset($mobileAppPromAddrUpd)) {
-      $file = $mobileAppPromAddrUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_address_proof' . '_' . $file;
-      $fieldName = $mobileAppPromAddrUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_kyc_addproof_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+        if (isset($mobileAppPromAddrUpd)) {
+          $file = $mobileAppPromAddrUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_address_proof' . '_' . $file;
+          $fieldName = $mobileAppPromAddrUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_kyc_addproof_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
     //new
         if (isset($mobileAppPromAddrUpd)) {
-      $file = $mobileAppPromAddrUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_pan_proof' . '_' . $file;
-      $fieldName = $mobileAppPromAddrUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_kyc_pan_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+          $file = $mobileAppPromAddrUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_pan_proof' . '_' . $file;
+          $fieldName = $mobileAppPromAddrUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_kyc_pan_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
 
     //end new
     //promoter 2
-    if (isset($mobileAppPromAddrUpd)) {
-      $file = $mobileAppPromAddrUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_pancard' . '_' . $file;
-      $fieldName = $mobileAppPromAddrUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_pancard_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+        if (isset($mobileAppPromAddrUpd)) {
+          $file = $mobileAppPromAddrUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_pancard' . '_' . $file;
+          $fieldName = $mobileAppPromAddrUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_pancard_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
     //promoter 3
 
-    if (isset($mobileAppPromAddrUpd)) {
-      $file = $mobileAppPromAddrUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'other_promoter' . '_' . $file;
-      $fieldName = $mobileAppPromAddrUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['other_promoter_file' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+        if (isset($mobileAppPromAddrUpd)) {
+          $file = $mobileAppPromAddrUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'other_promoter' . '_' . $file;
+          $fieldName = $mobileAppPromAddrUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['other_promoter_file' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
 
 
     //promoter 4
 
-    if (isset($mobileAppPromAddrUpd)) {
-      $file = $mobileAppPromAddrUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_idproof' . '_' . $file;
-      $fieldName = $mobileAppPromAddrUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_idproof_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+        if (isset($mobileAppPromAddrUpd)) {
+          $file = $mobileAppPromAddrUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_idproof' . '_' . $file;
+          $fieldName = $mobileAppPromAddrUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_idproof_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
 
     //new
 
         if (isset($mobileAppPromAddrUpd)) {
-      $file = $mobileAppPromAddrUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_addproof' . '_' . $file;
-      $fieldName = $mobileAppPromAddrUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_addproof_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+          $file = $mobileAppPromAddrUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_addproof' . '_' . $file;
+          $fieldName = $mobileAppPromAddrUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_addproof_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
 
     //end new
@@ -926,86 +932,86 @@ if ($validator->fails()) {
 
     //promoter 5
     //                  For promoter kyc & financial-> kyc details-> PAN card field of upload doc tab
-    if (isset($mobileAppPromPanUpd)) {
-      $file = $mobileAppPromPanUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_pancard' . '_' . $file;
-      $fieldName = $mobileAppPromPanUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_pancard_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+        if (isset($mobileAppPromPanUpd)) {
+          $file = $mobileAppPromPanUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_pancard' . '_' . $file;
+          $fieldName = $mobileAppPromPanUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_pancard_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
     //promoter 6
 
-    if (isset($mobileAppPromPanUpd)) {
-      $file = $mobileAppPromPanUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'visitingcard_file' . '_' . $file;
-      $fieldName = $mobileAppPromPanUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_visiting_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+        if (isset($mobileAppPromPanUpd)) {
+          $file = $mobileAppPromPanUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'visitingcard_file' . '_' . $file;
+          $fieldName = $mobileAppPromPanUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_visiting_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
     //new
         if (isset($mobileAppPromPanUpd)) {
-      $file = $mobileAppPromPanUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'network_file' . '_' . $file;
-      $fieldName = $mobileAppPromPanUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_network_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+          $file = $mobileAppPromPanUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'network_file' . '_' . $file;
+          $fieldName = $mobileAppPromPanUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_network_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
-          if (isset($mobileAppPromPanUpd)) {
-      $file = $mobileAppPromPanUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'cibil_file' . '_' . $file;
-      $fieldName = $mobileAppPromPanUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_cibil_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+        if (isset($mobileAppPromPanUpd)) {
+          $file = $mobileAppPromPanUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'cibil_file' . '_' . $file;
+          $fieldName = $mobileAppPromPanUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_cibil_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
 
 
     //end new
 
     //                  For promoter kyc & financial-> Bank Statements-> Bank Statements field of upload doc tab
-    if (isset($mobileAppPromBankUpd)) {
-      $file = $mobileAppPromBankUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_bankStmt' . '_' . $file;
-      $fieldName = $mobileAppPromBankUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_bank_stmt_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+        if (isset($mobileAppPromBankUpd)) {
+          $file = $mobileAppPromBankUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_bankStmt' . '_' . $file;
+          $fieldName = $mobileAppPromBankUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_bank_stmt_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
     //                  For promoter kyc & financial-> Financial-> CIBIL report (optional) field of upload doc tab
-    if (isset($mobileAppPromCibilUpd)) {
-      $file = $mobileAppPromCibilUpd;
-      $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_cibil' . '_' . $file;
-      $fieldName = $mobileAppPromCibilUpd;
-      if (isset($uploadDetails)) {
-        $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_cibilreport_file_path' => $uploadedFileName]);
-      }
-      $fileHelper->copyFile($directory, $uploadedFileName, $file);
-      $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-    }
+        if (isset($mobileAppPromCibilUpd)) {
+          $file = $mobileAppPromCibilUpd;
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_cibil' . '_' . $file;
+          $fieldName = $mobileAppPromCibilUpd;
+          if (isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], ['prom_cibilreport_file_path' => $uploadedFileName]);
+          }
+          $fileHelper->copyFile($directory, $uploadedFileName, $file);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
     //                  For updating mobile_app_data tables status from 0 to 1
-    $MobileAppDataStatus = MobileAppData::updateOrCreate(['id' => $mobileAppDataID], ['status' => 1]);
-  }
-}
+        $MobileAppDataStatus = MobileAppData::updateOrCreate(['id' => $mobileAppDataID], ['status' => 1]);
+      }
+    }
 
-}
-$redirectUrl = $this->generateRedirectURL('loans/promoter', $endUseList, $loanType, $amount, $loanTenure, $companySharePledged, $bscNscCode, $loanId);
-return Redirect::to($redirectUrl);
+  }
+  $redirectUrl = $this->generateRedirectURL('loans/promoter', $endUseList, $loanType, $amount, $loanTenure, $companySharePledged, $bscNscCode, $loanId);
+  return Redirect::to($redirectUrl);
 }
 
   /**
@@ -2955,377 +2961,377 @@ public function postApplicationlas(Request $request)
       $loanId = $param5;
     }
 
-  $loan = null;
-  if (isset($loanId)) {
-    $loan = Loan::find($loanId);
+    $loan = null;
+    if (isset($loanId)) {
+      $loan = Loan::find($loanId);
     //$loan = Loan::find($loanId);
-    $securityDetail = $loan->getSecurityDetails()->get()->first();
-    if ($companySharePledged == null) {
-      if (@$securityDetail->is_any_other_security == 1) {
-        $displayNoneSecurity = $securityDetail->is_any_other_security;
+      $securityDetail = $loan->getSecurityDetails()->get()->first();
+      if ($companySharePledged == null) {
+        if (@$securityDetail->is_any_other_security == 1) {
+          $displayNoneSecurity = $securityDetail->is_any_other_security;
+        }
+      }
+      if (!isset($endUseList)) {
+        $endUseList = $loan->end_use;
+      }
+      if (!isset($loanType)) {
+        $loanType = $loan->type;
+      }
+      if (!isset($amount)) {
+        $amount = $loan->loan_amount;
+      }
+      if (!isset($loanTenure)) {
+        $loanTenure = $loan->loan_tenure;
       }
     }
-    if (!isset($endUseList)) {
-      $endUseList = $loan->end_use;
-    }
-    if (!isset($loanType)) {
-      $loanType = $loan->type;
-    }
-    if (!isset($amount)) {
-      $amount = $loan->loan_amount;
-    }
-    if (!isset($loanTenure)) {
-      $loanTenure = $loan->loan_tenure;
-    }
-  }
-  $loan_tenure = MasterData::tenureYearList();
-  $chosenLoanTenure = null;
-  $loan_product = MasterData::loanProductType();
-  $chosenLoanProduct = null;
-  $subViewType = 'loans._upload_doc';
-  $formaction = 'Loans\LoansController@postUploaddoc';
+    $loan_tenure = MasterData::tenureYearList();
+    $chosenLoanTenure = null;
+    $loan_product = MasterData::loanProductType();
+    $chosenLoanProduct = null;
+    $subViewType = 'loans._upload_doc';
+    $formaction = 'Loans\LoansController@postUploaddoc';
   //$bl_year = MasterData::BalanceSheet_FY();
-  $bl_year = $this->setFinancialYears();
-  $addressTypes = MasterData::addressProofTypes();
-  $mandatoryField = 'M';
-  $setDisable = null;
-  $isAnalystUser = null;
-
-  $user = Auth::getUser();
-  $setDisable = $this->getIsDisabled($user);
-  if ($user->isAnalyst() && $setDisable == 'disabled') {
+    $bl_year = $this->setFinancialYears();
+    $addressTypes = MasterData::addressProofTypes();
+    $mandatoryField = 'M';
     $setDisable = null;
-    $mandatoryField = null;
+    $isAnalystUser = null;
 
-  }
-  $isRemoveMandatory = MasterData::removeMandatory();
-  $isRemoveMandatory = array_except($isRemoveMandatory, ['']);
-  $removeMandatoryHelper = new validLoanUrlhelper();
-  $removeMandatory = $removeMandatoryHelper->getMandatory($user, $isRemoveMandatory);
+    $user = Auth::getUser();
+    $setDisable = $this->getIsDisabled($user);
+    if ($user->isAnalyst() && $setDisable == 'disabled') {
+      $setDisable = null;
+      $mandatoryField = null;
 
-  $deletedQuestionsLoan = $this->getDeletedQuestionLoan($loan, $loanType, $amount);
-  $deletedQuestionHelper = new DeletedQuestionsHelper($deletedQuestionsLoan);
-  $isQuestionMandatory = new UploadDocHelper($loan);
-  $user = Auth::getUser();
-  $user_id = $user->id;
-  $max_cmpny_bank_stmt = Config::get('constants.CONST_MAX_COMPANY_BANK_STATEMENT');
-  $maxInvoiceCopyofEquipmentPurchase = Config::get('constants.CONST_MAX_INVOICE_COPY_OF_EQUIPMENT_PURCHASE');
-  $maxInvoiceBillDetails = Config::get('constants.CONST_MAX_COPY_OF_INVOICE_BILL_DETAILS');
-  $maxSecurityDocument = Config::get('constants.CONST_MAX_SECURITY_DOCUMENT_DETAILS');
-  $upload_doc = null;
-  $blplfile = [];
-  $kycdocument_file = null;
-  $pan_promoter_file = null;
-  $identity_proof_file = null;
-  $proof_address_file = null;
-  $bankstatement_file = null;
-  $cmpnybankstmt_file = [];
-  $cibilreport_file = null;
-  $visitingcard_file = null;
-  $promoternetworth_file = null;
-  $propertypapers_file = null;
-  $corporate_file = null;
-  $networthcertificate_file = null;
-  $otherdocument_file = null;
-  $ecommercesupply_file = null;
-  $pancard_file = null;
-  $vatregistration_file = null;
-
-  $shopestablish_file = null;
-  $addressproof_company_file = null;
-  $optional_file1 = null;
-  $optional_file2 = null;
-  $promoter_cibilreport_file = null;
-  $promoter_proof_address_file = null;
-  $equipmentPurchaseCopy = [];
-  $invoiceCopy = [];
-  $lastValuation = [];
-  $titleSearch = [];
-  $propertyTax = [];
-  $occupation = [];
-  $socityShare = [];
-  $extractFile = [];
-  $lastSaledeed = [];
-  $muncipalFile = [];
-  $electricityBill = [];
-  $existingSecurityFiles = 0;
-  $model = null;
-  $securityDetailsFile = null;
-  $n = 0;
-  $cnt = 0;
-  $o = 0;
-  $p = 0;
-  $q = 0;
-  $r = 0;
-  $s = 0;
-  $t = 0;
-  $u = 0;
-  $v = 0;
-  $fileHelper = new FileHelper();
-  $validLoanHelper = new validLoanUrlhelper();
-  if (isset($loanId)) {
-    $validLoan = $validLoanHelper->isValidLoan($loanId);
-    if (!$validLoan) {
-      return view('loans.error');
     }
-    $status = $validLoanHelper->getTabStatus($loanId, 'promoter_details');
-    if ($status == 'Y' && $setDisable != 'disabled') {
-      $setDisable = 'disabled';
+    $isRemoveMandatory = MasterData::removeMandatory();
+    $isRemoveMandatory = array_except($isRemoveMandatory, ['']);
+    $removeMandatoryHelper = new validLoanUrlhelper();
+    $removeMandatory = $removeMandatoryHelper->getMandatory($user, $isRemoveMandatory);
+
+    $deletedQuestionsLoan = $this->getDeletedQuestionLoan($loan, $loanType, $amount);
+    $deletedQuestionHelper = new DeletedQuestionsHelper($deletedQuestionsLoan);
+    $isQuestionMandatory = new UploadDocHelper($loan);
+    $user = Auth::getUser();
+    $user_id = $user->id;
+    $max_cmpny_bank_stmt = Config::get('constants.CONST_MAX_COMPANY_BANK_STATEMENT');
+    $maxInvoiceCopyofEquipmentPurchase = Config::get('constants.CONST_MAX_INVOICE_COPY_OF_EQUIPMENT_PURCHASE');
+    $maxInvoiceBillDetails = Config::get('constants.CONST_MAX_COPY_OF_INVOICE_BILL_DETAILS');
+    $maxSecurityDocument = Config::get('constants.CONST_MAX_SECURITY_DOCUMENT_DETAILS');
+    $upload_doc = null;
+    $blplfile = [];
+    $kycdocument_file = null;
+    $pan_promoter_file = null;
+    $identity_proof_file = null;
+    $proof_address_file = null;
+    $bankstatement_file = null;
+    $cmpnybankstmt_file = [];
+    $cibilreport_file = null;
+    $visitingcard_file = null;
+    $promoternetworth_file = null;
+    $propertypapers_file = null;
+    $corporate_file = null;
+    $networthcertificate_file = null;
+    $otherdocument_file = null;
+    $ecommercesupply_file = null;
+    $pancard_file = null;
+    $vatregistration_file = null;
+
+    $shopestablish_file = null;
+    $addressproof_company_file = null;
+    $optional_file1 = null;
+    $optional_file2 = null;
+    $promoter_cibilreport_file = null;
+    $promoter_proof_address_file = null;
+    $equipmentPurchaseCopy = [];
+    $invoiceCopy = [];
+    $lastValuation = [];
+    $titleSearch = [];
+    $propertyTax = [];
+    $occupation = [];
+    $socityShare = [];
+    $extractFile = [];
+    $lastSaledeed = [];
+    $muncipalFile = [];
+    $electricityBill = [];
+    $existingSecurityFiles = 0;
+    $model = null;
+    $securityDetailsFile = null;
+    $n = 0;
+    $cnt = 0;
+    $o = 0;
+    $p = 0;
+    $q = 0;
+    $r = 0;
+    $s = 0;
+    $t = 0;
+    $u = 0;
+    $v = 0;
+    $fileHelper = new FileHelper();
+    $validLoanHelper = new validLoanUrlhelper();
+    if (isset($loanId)) {
+      $validLoan = $validLoanHelper->isValidLoan($loanId);
+      if (!$validLoan) {
+        return view('loans.error');
+      }
+      $status = $validLoanHelper->getTabStatus($loanId, 'promoter_details');
+      if ($status == 'Y' && $setDisable != 'disabled') {
+        $setDisable = 'disabled';
+      }
     }
-  }
-  if (isset($loanId)) {
-    $loan = Loan::find($loanId);
-    $model = $loan->getUploads()->get()->first();
-    if (isset($model)) {
-      $model = $model->toArray();
-      for ($i = 1; $i <= count($model); $i++) {
-        foreach ($model as $key => $val) {
-          if ($key == 'finyear_file' . $i . '_path') {
-            if (isset($val)) {
-              $blplfile[$key] = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'bank_file' . $i . '_path') {
-            if (isset($val)) {
-              $cmpnybankstmt_file[$key] = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'cibilreport_file_path') {
-            if (isset($val)) {
-              $cibilreport_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'pancard_file_path') {
-            if (isset($val)) {
-              $pancard_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'vatreg_file_path') {
-            if (isset($val)) {
-              $vatregistration_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'shopestablish_file_path') {
-            if (isset($val)) {
-              $shopestablish_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'addproof_file_path') {
-            if (isset($val)) {
-              $addressproof_company_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'kyc_extra_file1_path') {
-            if (isset($val)) {
-              $optional_file1 = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'kyc_extra_file2_path') {
-            if (isset($val)) {
-              $optional_file2 = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'prom_bank_stmt_file_path') {
-            if (isset($val)) {
-              $bankstatement_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'prom_networth_file_path') {
-            if (isset($val)) {
-              $promoternetworth_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'prom_cibilreport_file_path') {
-            if (isset($val)) {
-              $promoter_cibilreport_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'prom_kyc_addproof_file_path') {
-            if (isset($val)) {
-              $promoter_proof_address_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'prom_idproof_file_path') {
-            if (isset($val)) {
-              $identity_proof_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'prom_visiting_file_path') {
-            if (isset($val)) {
-              $visitingcard_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'prom_pancard_file_path') {
-            if (isset($val)) {
-              $pan_promoter_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'business_corporate_file_path') {
-            if (isset($val)) {
-              $corporate_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'business_cert_ecom_file_path') {
-            if (isset($val)) {
-              $ecommercesupply_file = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'business_invoice_equi' . $i . '_file_path') {
-            if (isset($val)) {
-              $equipmentPurchaseCopy[$key] = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'business_invoice_bill' . $i . '_file_path') {
-            if (isset($val)) {
-              $invoiceCopy[$key] = $fileHelper->getFileDownloadURL($val);
-            }
-          } else if ($key == 'last_pro_val_report' . $i . '_path') {
-            if (isset($val)) {
-              $lastValuation[$n] = $fileHelper->getFileDownloadURL($val);
-              $n++;
-              $cnt = $n;
-            }
-          } else if ($key == 'pro_title_search_report' . $i . '_path') {
-            if (isset($val)) {
-              $titleSearch[$o] = $fileHelper->getFileDownloadURL($val);
-              $o++;
-              if ($cnt < $o) {
-                $cnt = $o;
+    if (isset($loanId)) {
+      $loan = Loan::find($loanId);
+      $model = $loan->getUploads()->get()->first();
+      if (isset($model)) {
+        $model = $model->toArray();
+        for ($i = 1; $i <= count($model); $i++) {
+          foreach ($model as $key => $val) {
+            if ($key == 'finyear_file' . $i . '_path') {
+              if (isset($val)) {
+                $blplfile[$key] = $fileHelper->getFileDownloadURL($val);
               }
-            }
-          } else if ($key == 'pro_tax_card' . $i . '_path') {
-            if (isset($val)) {
-              $propertyTax[$p] = $fileHelper->getFileDownloadURL($val);
-              $p++;
-              if ($cnt < $p) {
-                $cnt = $p;
+            } else if ($key == 'bank_file' . $i . '_path') {
+              if (isset($val)) {
+                $cmpnybankstmt_file[$key] = $fileHelper->getFileDownloadURL($val);
               }
-            }
-          } else if ($key == 'oc' . $i . '_path') {
-            if (isset($val)) {
-              $occupation[$q] = $fileHelper->getFileDownloadURL($val);
-              $q++;
-              if ($cnt < $q) {
-                $cnt = $q;
+            } else if ($key == 'cibilreport_file_path') {
+              if (isset($val)) {
+                $cibilreport_file = $fileHelper->getFileDownloadURL($val);
               }
-            }
-          } else if ($key == 'society_share_cert' . $i . '_path') {
-            if (isset($val)) {
-              $socityShare[$r] = $fileHelper->getFileDownloadURL($val);
-              $r++;
-              if ($cnt < $r) {
-                $cnt = $r;
+            } else if ($key == 'pancard_file_path') {
+              if (isset($val)) {
+                $pancard_file = $fileHelper->getFileDownloadURL($val);
               }
-            }
-          } else if ($key == 'copy_7_12_extract' . $i . '_path') {
-            if (isset($val)) {
-              $extractFile[$s] = $fileHelper->getFileDownloadURL($val);
-              $s++;
-              if ($cnt < $s) {
-                $cnt = $s;
+            } else if ($key == 'vatreg_file_path') {
+              if (isset($val)) {
+                $vatregistration_file = $fileHelper->getFileDownloadURL($val);
               }
-            }
-          } else if ($key == 'copy_last_sales_pur' . $i . '_path') {
-            if (isset($val)) {
-              $lastSaledeed[$t] = $fileHelper->getFileDownloadURL($val);
-              $t++;
-              if ($cnt < $t) {
-                $cnt = $t;
+            } else if ($key == 'shopestablish_file_path') {
+              if (isset($val)) {
+                $shopestablish_file = $fileHelper->getFileDownloadURL($val);
               }
-            }
-          } else if ($key == 'municipal_plan' . $i . '_path') {
-            if (isset($val)) {
-              $muncipalFile[$u] = $fileHelper->getFileDownloadURL($val);
-              $u++;
-              if ($cnt < $u) {
-                $cnt = $u;
+            } else if ($key == 'addproof_file_path') {
+              if (isset($val)) {
+                $addressproof_company_file = $fileHelper->getFileDownloadURL($val);
               }
-            }
-          } else if ($key == 'electricity_bill_' . $i . '_path') {
-            if (isset($val)) {
-              $electricityBill[$v] = $fileHelper->getFileDownloadURL($val);
-              $v++;
-              if ($cnt < $v) {
-                $cnt = $v;
+            } else if ($key == 'kyc_extra_file1_path') {
+              if (isset($val)) {
+                $optional_file1 = $fileHelper->getFileDownloadURL($val);
+              }
+            } else if ($key == 'kyc_extra_file2_path') {
+              if (isset($val)) {
+                $optional_file2 = $fileHelper->getFileDownloadURL($val);
+              }
+            } else if ($key == 'prom_bank_stmt_file_path') {
+              if (isset($val)) {
+                $bankstatement_file = $fileHelper->getFileDownloadURL($val);
+              }
+            } else if ($key == 'prom_networth_file_path') {
+              if (isset($val)) {
+                $promoternetworth_file = $fileHelper->getFileDownloadURL($val);
+              }
+            } else if ($key == 'prom_cibilreport_file_path') {
+              if (isset($val)) {
+                $promoter_cibilreport_file = $fileHelper->getFileDownloadURL($val);
+              }
+            } else if ($key == 'prom_kyc_addproof_file_path') {
+              if (isset($val)) {
+                $promoter_proof_address_file = $fileHelper->getFileDownloadURL($val);
+              }
+            } else if ($key == 'prom_idproof_file_path') {
+              if (isset($val)) {
+                $identity_proof_file = $fileHelper->getFileDownloadURL($val);
+              }
+            } else if ($key == 'prom_visiting_file_path') {
+              if (isset($val)) {
+                $visitingcard_file = $fileHelper->getFileDownloadURL($val);
+              }
+            } else if ($key == 'prom_pancard_file_path') {
+              if (isset($val)) {
+                $pan_promoter_file = $fileHelper->getFileDownloadURL($val);
+              }
+            } else if ($key == 'business_corporate_file_path') {
+              if (isset($val)) {
+                $corporate_file = $fileHelper->getFileDownloadURL($val);
+              }
+            } else if ($key == 'business_cert_ecom_file_path') {
+              if (isset($val)) {
+                $ecommercesupply_file = $fileHelper->getFileDownloadURL($val);
+              }
+            } else if ($key == 'business_invoice_equi' . $i . '_file_path') {
+              if (isset($val)) {
+                $equipmentPurchaseCopy[$key] = $fileHelper->getFileDownloadURL($val);
+              }
+            } else if ($key == 'business_invoice_bill' . $i . '_file_path') {
+              if (isset($val)) {
+                $invoiceCopy[$key] = $fileHelper->getFileDownloadURL($val);
+              }
+            } else if ($key == 'last_pro_val_report' . $i . '_path') {
+              if (isset($val)) {
+                $lastValuation[$n] = $fileHelper->getFileDownloadURL($val);
+                $n++;
+                $cnt = $n;
+              }
+            } else if ($key == 'pro_title_search_report' . $i . '_path') {
+              if (isset($val)) {
+                $titleSearch[$o] = $fileHelper->getFileDownloadURL($val);
+                $o++;
+                if ($cnt < $o) {
+                  $cnt = $o;
+                }
+              }
+            } else if ($key == 'pro_tax_card' . $i . '_path') {
+              if (isset($val)) {
+                $propertyTax[$p] = $fileHelper->getFileDownloadURL($val);
+                $p++;
+                if ($cnt < $p) {
+                  $cnt = $p;
+                }
+              }
+            } else if ($key == 'oc' . $i . '_path') {
+              if (isset($val)) {
+                $occupation[$q] = $fileHelper->getFileDownloadURL($val);
+                $q++;
+                if ($cnt < $q) {
+                  $cnt = $q;
+                }
+              }
+            } else if ($key == 'society_share_cert' . $i . '_path') {
+              if (isset($val)) {
+                $socityShare[$r] = $fileHelper->getFileDownloadURL($val);
+                $r++;
+                if ($cnt < $r) {
+                  $cnt = $r;
+                }
+              }
+            } else if ($key == 'copy_7_12_extract' . $i . '_path') {
+              if (isset($val)) {
+                $extractFile[$s] = $fileHelper->getFileDownloadURL($val);
+                $s++;
+                if ($cnt < $s) {
+                  $cnt = $s;
+                }
+              }
+            } else if ($key == 'copy_last_sales_pur' . $i . '_path') {
+              if (isset($val)) {
+                $lastSaledeed[$t] = $fileHelper->getFileDownloadURL($val);
+                $t++;
+                if ($cnt < $t) {
+                  $cnt = $t;
+                }
+              }
+            } else if ($key == 'municipal_plan' . $i . '_path') {
+              if (isset($val)) {
+                $muncipalFile[$u] = $fileHelper->getFileDownloadURL($val);
+                $u++;
+                if ($cnt < $u) {
+                  $cnt = $u;
+                }
+              }
+            } else if ($key == 'electricity_bill_' . $i . '_path') {
+              if (isset($val)) {
+                $electricityBill[$v] = $fileHelper->getFileDownloadURL($val);
+                $v++;
+                if ($cnt < $v) {
+                  $cnt = $v;
+                }
               }
             }
           }
         }
       }
+      if ($cnt != 0) {
+        $existingSecurityFiles = $cnt;
+      }
     }
-    if ($cnt != 0) {
-      $existingSecurityFiles = $cnt;
-    }
-  }
   //getting borrowers profile
-  if (isset($loanId)) {
-    $loan = Loan::find($loanId);
-    $loanUser = User::find($loan->user_id);
-    $loanUserProfile = $loanUser->userProfile();
+    if (isset($loanId)) {
+      $loan = Loan::find($loanId);
+      $loanUser = User::find($loan->user_id);
+      $loanUserProfile = $loanUser->userProfile();
+    }
+    $userPr = UserProfile::where('user_id', '=', $loan->user_id)->first();
+    $userProfile = UserProfile::with('user')->find($userPr->id);
+    return view('loans.createedit', compact(
+      'subViewType',
+      'endUseList',
+      'loanType',
+      'amount',
+      'loanTenure',
+      'loan',
+      'loanId',
+      'formaction',
+      'loan_tenure',
+      'chosenLoanTenure',
+      'userProfile',
+      'loan_product',
+      'chosenLoanProduct',
+      'bl_year',
+      'addressTypes',
+      'kycdocument_file',
+      'pan_promoter_file',
+      'proof_address_file',
+      'bankstatement_file',
+      'cibilreport_file',
+      'visitingcard_file',
+      'promoternetworth_file',
+      'propertypapers_file',
+      'corporate_file',
+      'networthcertificate_file',
+      'otherdocument_file',
+      'ecommercesupply_file',
+      'blplfile',
+      'pancard_file',
+      'vatregistration_file',
+      'shopestablish_file',
+      'removeMandatory',
+      'addressproof_company_file',
+      'optional_file1',
+      'optional_file2',
+      'promoter_cibilreport_file',
+      'promoter_proof_address_file',
+      'max_cmpny_bank_stmt',
+      'cmpnybankstmt_file',
+      'maxInvoiceCopyofEquipmentPurchase',
+      'equipmentPurchaseCopy',
+      'maxInvoiceBillDetails',
+      'invoiceCopy',
+      'maxSecurityDocument',
+      'existingSecurityFiles',
+      'lastValuation',
+      'titleSearch',
+      'propertyTax',
+      'occupation',
+      'socityShare',
+      'extractFile',
+      'lastSaledeed',
+      'muncipalFile',
+      'electricityBill',
+      'setDisable',
+      'displayNoneSecurity',
+      'deletedQuestionHelper',
+      'model',
+      'isQuestionMandatory',
+      'companySharePledged',
+      'bscNscCode',
+      'validLoanHelper',
+      'mandatoryField',
+      'identity_proof_file',
+      'loanUserProfile'
+    ));
   }
-  $userPr = UserProfile::where('user_id', '=', $loan->user_id)->first();
-  $userProfile = UserProfile::with('user')->find($userPr->id);
-  return view('loans.createedit', compact(
-    'subViewType',
-    'endUseList',
-    'loanType',
-    'amount',
-    'loanTenure',
-    'loan',
-    'loanId',
-    'formaction',
-    'loan_tenure',
-    'chosenLoanTenure',
-    'userProfile',
-    'loan_product',
-    'chosenLoanProduct',
-    'bl_year',
-    'addressTypes',
-    'kycdocument_file',
-    'pan_promoter_file',
-    'proof_address_file',
-    'bankstatement_file',
-    'cibilreport_file',
-    'visitingcard_file',
-    'promoternetworth_file',
-    'propertypapers_file',
-    'corporate_file',
-    'networthcertificate_file',
-    'otherdocument_file',
-    'ecommercesupply_file',
-    'blplfile',
-    'pancard_file',
-    'vatregistration_file',
-    'shopestablish_file',
-    'removeMandatory',
-    'addressproof_company_file',
-    'optional_file1',
-    'optional_file2',
-    'promoter_cibilreport_file',
-    'promoter_proof_address_file',
-    'max_cmpny_bank_stmt',
-    'cmpnybankstmt_file',
-    'maxInvoiceCopyofEquipmentPurchase',
-    'equipmentPurchaseCopy',
-    'maxInvoiceBillDetails',
-    'invoiceCopy',
-    'maxSecurityDocument',
-    'existingSecurityFiles',
-    'lastValuation',
-    'titleSearch',
-    'propertyTax',
-    'occupation',
-    'socityShare',
-    'extractFile',
-    'lastSaledeed',
-    'muncipalFile',
-    'electricityBill',
-    'setDisable',
-    'displayNoneSecurity',
-    'deletedQuestionHelper',
-    'model',
-    'isQuestionMandatory',
-    'companySharePledged',
-    'bscNscCode',
-    'validLoanHelper',
-    'mandatoryField',
-    'identity_proof_file',
-    'loanUserProfile'
-  ));
-}
 
-public function postUploaddoc(Request $request)
-{
-  $input = Input::all();
-  $loanId = isset($input['loanId']) ? $input['loanId'] : null;
-  $loanType = isset($input['type']) ? $input['type'] : null;
-  $amount = isset($input['loan_amount']) ? $input['loan_amount'] : null;
-  $loanTenure = isset($input['loan_tenure']) ? $input['loan_tenure'] : null;
-  $endUseList = isset($input['end_use']) ? $input['end_use'] : null;
-  $companySharePledged = isset($input['companySharePledged']) ? $input['companySharePledged'] : null;
-  $bscNscCode = isset($input['bscNscCode']) ? $input['bscNscCode'] : null;
-  $user = Auth::getUser();
+  public function postUploaddoc(Request $request)
+  {
+    $input = Input::all();
+    $loanId = isset($input['loanId']) ? $input['loanId'] : null;
+    $loanType = isset($input['type']) ? $input['type'] : null;
+    $amount = isset($input['loan_amount']) ? $input['loan_amount'] : null;
+    $loanTenure = isset($input['loan_tenure']) ? $input['loan_tenure'] : null;
+    $endUseList = isset($input['end_use']) ? $input['end_use'] : null;
+    $companySharePledged = isset($input['companySharePledged']) ? $input['companySharePledged'] : null;
+    $bscNscCode = isset($input['bscNscCode']) ? $input['bscNscCode'] : null;
+    $user = Auth::getUser();
     $user_id = $user->id; //Obtaining User id
     if (isset($loanId)) {
       $loan = Loan::find($loanId);
@@ -3366,68 +3372,87 @@ public function postUploaddoc(Request $request)
           $uploadDetails->setAttribute($fieldName, $uploadedFileName);
         }
 
-}
+      }
 // Bank Statement
-$maxCompanyBankStmt = Config::get('constants.CONST_MAX_COMPANY_BANK_STATEMENT');
-$maxCompanyBankStmtcount = @$input['num_bank'];
+      $maxCompanyBankStmt = Config::get('constants.CONST_MAX_COMPANY_BANK_STATEMENT');
+      $maxCompanyBankStmtcount = @$input['num_bank'];
 //dd($maxCompanyBankStmt);
-for ($i = 1; $i <= $maxCompanyBankStmt; $i++) {
-  if ($maxCompanyBankStmtcount == 1 && $i > $maxCompanyBankStmtcount) {
-    $bankStmt = Upload::updateOrCreate(['loan_id' => $loanId], ['bank_name' . $i => null, 'bank_period' . $i => null, 'bank_file' . $i . '_path' => null]);
-    $bankStmt->save();
-  } elseif ($maxCompanyBankStmtcount == 2 && $i > $maxCompanyBankStmtcount) {
-    $bankStmt = Upload::updateOrCreate(['loan_id' => $loanId], ['bank_name' . $i => null, 'bank_period' . $i => null, 'bank_file' . $i . '_path' => null]);
-    $bankStmt->save();
-  }
-}
-for ($i = 1; $i <= $maxCompanyBankStmtcount; $i++) {
-  if (!empty($input['bank_name' . $i])) {
-    $bankStmt = Upload::updateOrCreate(['loan_id' => $loanId], ['bank_name' . $i => $input['bank_name' . $i], 'bank_period' . $i => $input['bank_period' . $i]]);
-    $bankStmt->save();
-  }
-  if ($request->file('bank_file' . $i . '_path')) {
-    $file = $request->file('bank_file' . $i . '_path');
-    $originalFileName = $file->getClientOriginalName();
-    $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'bankstmt_' . $i . '-' . $originalFileName;
-    $oldFileName = null;
-    $fieldName = 'bank_file' . $i . '_path';
-    if (!isset($uploadDetails)) {
-      $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-    }
-    if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-      $oldFileName = $uploadDetails->getAttribute($fieldName);
-    }
-    $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-    $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-  }
-}
+      for ($i = 1; $i <= $maxCompanyBankStmt; $i++) {
+        if ($maxCompanyBankStmtcount == 1 && $i > $maxCompanyBankStmtcount) {
+          $bankStmt = Upload::updateOrCreate(['loan_id' => $loanId], ['bank_name' . $i => null, 'bank_period' . $i => null, 'bank_file' . $i . '_path' => null]);
+          $bankStmt->save();
+        } elseif ($maxCompanyBankStmtcount == 2 && $i > $maxCompanyBankStmtcount) {
+          $bankStmt = Upload::updateOrCreate(['loan_id' => $loanId], ['bank_name' . $i => null, 'bank_period' . $i => null, 'bank_file' . $i . '_path' => null]);
+          $bankStmt->save();
+        }
+      }
+      for ($i = 1; $i <= $maxCompanyBankStmtcount; $i++) {
+        if (!empty($input['bank_name' . $i])) {
+          $bankStmt = Upload::updateOrCreate(['loan_id' => $loanId], ['bank_name' . $i => $input['bank_name' . $i], 'bank_period' . $i => $input['bank_period' . $i]]);
+          $bankStmt->save();
+        }
+        if ($request->file('bank_file' . $i . '_path')) {
+          $file = $request->file('bank_file' . $i . '_path');
+          $originalFileName = $file->getClientOriginalName();
+          $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'bankstmt_' . $i . '-' . $originalFileName;
+          $oldFileName = null;
+          $fieldName = 'bank_file' . $i . '_path';
+          if (!isset($uploadDetails)) {
+            $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+          }
+          if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+            $oldFileName = $uploadDetails->getAttribute($fieldName);
+          }
+          $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+          $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+        }
+      }
 //CIBIL Report
-if ($request->file('cibilreport_file_path')) {
-  $file = $request->file('cibilreport_file_path');
-  $originalFileName = $file->getClientOriginalName();
-  $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'cibil_report' . '_' . $originalFileName;
-  $oldFileName = null;
-  $fieldName = 'cibilreport_file_path';
-  if (!isset($uploadDetails)) {
-    $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-  }
-  if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-    $oldFileName = $uploadDetails->getAttribute($fieldName);
-  }
-  $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-  $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-}
+      if ($request->file('cibilreport_file_path')) {
+        $file = $request->file('cibilreport_file_path');
+        $originalFileName = $file->getClientOriginalName();
+        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'cibil_report' . '_' . $originalFileName;
+        $oldFileName = null;
+        $fieldName = 'cibilreport_file_path';
+        if (!isset($uploadDetails)) {
+          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+        }
+        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+          $oldFileName = $uploadDetails->getAttribute($fieldName);
+        }
+        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+      }
 //Company Kyc Details Files\
-if (isset($input['kycDetails'])) {
-  for ($i = 1; $i <= count($input['kycDetails']); $i++) {
-    $file_temp = $input['kycDetails'][$i];
-    foreach ($file_temp as $key => $item) {
-      if (isset($item)) {
-        $file = $item;
+      if (isset($input['kycDetails'])) {
+        for ($i = 1; $i <= count($input['kycDetails']); $i++) {
+          $file_temp = $input['kycDetails'][$i];
+          foreach ($file_temp as $key => $item) {
+            if (isset($item)) {
+              $file = $item;
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'KYC_' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            }
+
+          }
+        }
+      }
+      if ($request->file('prom_bank_stmt_file_path')) {
+        $file = $request->file('prom_bank_stmt_file_path');
         $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'KYC_' . $originalFileName;
+        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_bankStmt_' . $originalFileName;
         $oldFileName = null;
-        $fieldName = $key;
+        $fieldName = 'prom_bank_stmt_file_path';
         if (!isset($uploadDetails)) {
           $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
         }
@@ -3438,531 +3463,512 @@ if (isset($input['kycDetails'])) {
         $uploadDetails->setAttribute($fieldName, $uploadedFileName);
       }
 
-}
-}
-}
-if ($request->file('prom_bank_stmt_file_path')) {
-  $file = $request->file('prom_bank_stmt_file_path');
-  $originalFileName = $file->getClientOriginalName();
-  $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_bankStmt_' . $originalFileName;
-  $oldFileName = null;
-  $fieldName = 'prom_bank_stmt_file_path';
-  if (!isset($uploadDetails)) {
-    $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-  }
-  if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-    $oldFileName = $uploadDetails->getAttribute($fieldName);
-  }
-  $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-  $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-}
+      if ($request->file('prom_networth_file_path')) {
+        $file = $request->file('prom_networth_file_path');
+        $originalFileName = $file->getClientOriginalName();
+        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_networth' . '_' . $originalFileName;
+        $oldFileName = null;
+        $fieldName = 'prom_networth_file_path';
+        if (!isset($uploadDetails)) {
+          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+        }
+        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+          $oldFileName = $uploadDetails->getAttribute($fieldName);
+        }
+        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+      } else {
+        if ($deletedQuestionHelper->isQuestionValid("F2.2")) {
 
-if ($request->file('prom_networth_file_path')) {
-  $file = $request->file('prom_networth_file_path');
-  $originalFileName = $file->getClientOriginalName();
-  $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_networth' . '_' . $originalFileName;
-  $oldFileName = null;
-  $fieldName = 'prom_networth_file_path';
-  if (!isset($uploadDetails)) {
-    $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-  }
-  if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-    $oldFileName = $uploadDetails->getAttribute($fieldName);
-  }
-  $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-  $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-} else {
-  if ($deletedQuestionHelper->isQuestionValid("F2.2")) {
-  
-  }
-}
-if ($request->file('prom_cibilreport_file_path')) {
-  $file = $request->file('prom_cibilreport_file_path');
-  $originalFileName = $file->getClientOriginalName();
-  $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_cibil' . '_' . $originalFileName;
-  $oldFileName = null;
-  $fieldName = 'prom_cibilreport_file_path';
-  if (!isset($uploadDetails)) {
-    $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-  }
-  if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-    $oldFileName = $uploadDetails->getAttribute($fieldName);
-  }
-  $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-  $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-}
-if ($request->file('prom_kyc_addproof_file_path')) {
-  $file = $request->file('prom_kyc_addproof_file_path');
-  $originalFileName = $file->getClientOriginalName();
-  $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_address_proof' . '_' . $originalFileName;
-  $oldFileName = null;
-  $fieldName = 'prom_kyc_addproof_file_path';
-  if (!isset($uploadDetails)) {
-    $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-  }
-  if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-    $oldFileName = $uploadDetails->getAttribute($fieldName);
-  }
-  $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-  $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-}
+        }
+      }
+      if ($request->file('prom_cibilreport_file_path')) {
+        $file = $request->file('prom_cibilreport_file_path');
+        $originalFileName = $file->getClientOriginalName();
+        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_cibil' . '_' . $originalFileName;
+        $oldFileName = null;
+        $fieldName = 'prom_cibilreport_file_path';
+        if (!isset($uploadDetails)) {
+          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+        }
+        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+          $oldFileName = $uploadDetails->getAttribute($fieldName);
+        }
+        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+      }
+      if ($request->file('prom_kyc_addproof_file_path')) {
+        $file = $request->file('prom_kyc_addproof_file_path');
+        $originalFileName = $file->getClientOriginalName();
+        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_address_proof' . '_' . $originalFileName;
+        $oldFileName = null;
+        $fieldName = 'prom_kyc_addproof_file_path';
+        if (!isset($uploadDetails)) {
+          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+        }
+        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+          $oldFileName = $uploadDetails->getAttribute($fieldName);
+        }
+        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+      }
 
-if ($request->file('prom_pancard_file_path')) {
-  $file = $request->file('prom_pancard_file_path');
-  $originalFileName = $file->getClientOriginalName();
-  $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_pancard' . '_' . $originalFileName;
-  $oldFileName = null;
-  $fieldName = 'prom_pancard_file_path';
-  if (!isset($uploadDetails)) {
-    $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-  }
-  if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-    $oldFileName = $uploadDetails->getAttribute($fieldName);
-  }
-  $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-  $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-}
+      if ($request->file('prom_pancard_file_path')) {
+        $file = $request->file('prom_pancard_file_path');
+        $originalFileName = $file->getClientOriginalName();
+        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_pancard' . '_' . $originalFileName;
+        $oldFileName = null;
+        $fieldName = 'prom_pancard_file_path';
+        if (!isset($uploadDetails)) {
+          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+        }
+        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+          $oldFileName = $uploadDetails->getAttribute($fieldName);
+        }
+        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+      }
 
-if ($request->file('prom_idproof_file_path')) {
-  $file = $request->file('prom_idproof_file_path');
-  $originalFileName = $file->getClientOriginalName();
-  $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_idproof' . '_' . $originalFileName;
-  $oldFileName = null;
-  $fieldName = 'prom_idproof_file_path';
-  if (!isset($uploadDetails)) {
-    $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-  }
-  if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-    $oldFileName = $uploadDetails->getAttribute($fieldName);
-  }
-  $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-  $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-} else
+      if ($request->file('prom_idproof_file_path')) {
+        $file = $request->file('prom_idproof_file_path');
+        $originalFileName = $file->getClientOriginalName();
+        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'promoter_idproof' . '_' . $originalFileName;
+        $oldFileName = null;
+        $fieldName = 'prom_idproof_file_path';
+        if (!isset($uploadDetails)) {
+          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+        }
+        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+          $oldFileName = $uploadDetails->getAttribute($fieldName);
+        }
+        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+      } else
 
 
 
-if ($request->file('business_corporate_file_path')) {
-  $file = $request->file('business_corporate_file_path');
-  $originalFileName = $file->getClientOriginalName();
-  $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'corporate_presentation' . '_' . $originalFileName;
-  $oldFileName = null;
-  $fieldName = 'business_corporate_file_path';
-  if (!isset($uploadDetails)) {
-    $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-  }
-  if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-    $oldFileName = $uploadDetails->getAttribute($fieldName);
-  }
-  $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-  $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-}
-if ($request->file('business_cert_ecom_file_path')) {
-  $file = $request->file('business_cert_ecom_file_path');
-  $originalFileName = $file->getClientOriginalName();
-  $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'e-commerce_certificate' . $i . '_' . $originalFileName;
-  $oldFileName = null;
-  $fieldName = 'business_cert_ecom_file_path';
-  if (!isset($uploadDetails)) {
-    $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-  }
-  if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-    $oldFileName = $uploadDetails->getAttribute($fieldName);
-  }
-  $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-  $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-}
+      if ($request->file('business_corporate_file_path')) {
+        $file = $request->file('business_corporate_file_path');
+        $originalFileName = $file->getClientOriginalName();
+        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'corporate_presentation' . '_' . $originalFileName;
+        $oldFileName = null;
+        $fieldName = 'business_corporate_file_path';
+        if (!isset($uploadDetails)) {
+          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+        }
+        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+          $oldFileName = $uploadDetails->getAttribute($fieldName);
+        }
+        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+      }
+      if ($request->file('business_cert_ecom_file_path')) {
+        $file = $request->file('business_cert_ecom_file_path');
+        $originalFileName = $file->getClientOriginalName();
+        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'e-commerce_certificate' . $i . '_' . $originalFileName;
+        $oldFileName = null;
+        $fieldName = 'business_cert_ecom_file_path';
+        if (!isset($uploadDetails)) {
+          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+        }
+        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+          $oldFileName = $uploadDetails->getAttribute($fieldName);
+        }
+        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+      }
 //Invoice Copy of Equipment Purchase
-$maxInvoiceCopyofEquipmentPurchase = Config::get('constants.CONST_MAX_INVOICE_COPY_OF_EQUIPMENT_PURCHASE');
-if ($deletedQuestionHelper->isQuestionValid("F3.3")) {
-  $maxEquipmentPurchaseCopy = $input['num_equi_purchase'];
-  for ($i = 1; $i <= $maxInvoiceCopyofEquipmentPurchase; $i++) {
-    if ($maxEquipmentPurchaseCopy == 1 && $i > $maxEquipmentPurchaseCopy) {
-      $fieldName = 'business_invoice_equi' . $i . '_file_path';
-      $equipmentPurchase = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
-      $equipmentPurchase->save();
-    } elseif ($maxEquipmentPurchaseCopy == 2 && $i > $maxEquipmentPurchaseCopy) {
-      $fieldName = 'business_invoice_equi' . $i . '_file_path';
-      $equipmentPurchase = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
-      $equipmentPurchase->save();
-    }
-  }
-}
-if (isset($input['equipementPurchase'])) {
-  $m = 1;
-  foreach ($input['equipementPurchase'] as $key => $file) {
-    if ($m <= $input['num_equi_purchase']) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'equipment_copy' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      $maxInvoiceCopyofEquipmentPurchase = Config::get('constants.CONST_MAX_INVOICE_COPY_OF_EQUIPMENT_PURCHASE');
+      if ($deletedQuestionHelper->isQuestionValid("F3.3")) {
+        $maxEquipmentPurchaseCopy = $input['num_equi_purchase'];
+        for ($i = 1; $i <= $maxInvoiceCopyofEquipmentPurchase; $i++) {
+          if ($maxEquipmentPurchaseCopy == 1 && $i > $maxEquipmentPurchaseCopy) {
+            $fieldName = 'business_invoice_equi' . $i . '_file_path';
+            $equipmentPurchase = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
+            $equipmentPurchase->save();
+          } elseif ($maxEquipmentPurchaseCopy == 2 && $i > $maxEquipmentPurchaseCopy) {
+            $fieldName = 'business_invoice_equi' . $i . '_file_path';
+            $equipmentPurchase = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
+            $equipmentPurchase->save();
+          }
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
+      }
+      if (isset($input['equipementPurchase'])) {
+        $m = 1;
+        foreach ($input['equipementPurchase'] as $key => $file) {
+          if ($m <= $input['num_equi_purchase']) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'equipment_copy' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
 
+            }
+          } else {
+            break;
+          }
+          $m++;
+        }
       }
-    } else {
-      break;
-    }
-    $m++;
-  }
-}
 //Copy of Invoice/Bill details
-$maxInvoiceBillDetails = Config::get('constants.CONST_MAX_COPY_OF_INVOICE_BILL_DETAILS');
-if ($deletedQuestionHelper->isQuestionValid("F3.4")) {
-  $maxInvoiceBillDetailsCount = $input['num_invoice_detail'];
-  for ($i = 1; $i < $maxInvoiceBillDetails; $i++) {
-    if ($maxInvoiceBillDetailsCount == 1 && $i > $maxInvoiceBillDetailsCount) {
-      $fieldName = 'business_invoice_bill' . $i . '_file_path';
-      $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
-      $equipmentBillDetails->save();
-    } elseif ($maxInvoiceBillDetailsCount == 2 && $i > $maxInvoiceBillDetailsCount) {
-      $fieldName = 'business_invoice_bill' . $i . '_file_path';
-      $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
-      $equipmentBillDetails->save();
-    } elseif ($maxInvoiceBillDetailsCount == 3 && $i > $maxInvoiceBillDetailsCount) {
-      $fieldName = 'business_invoice_bill' . $i . '_file_path';
-      $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
-      $equipmentBillDetails->save();
-    } elseif ($maxInvoiceBillDetailsCount == 4 && $i > $maxInvoiceBillDetailsCount) {
-      $fieldName = 'business_invoice_bill' . $i . '_file_path';
-      $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
-      $equipmentBillDetails->save();
-    }
-  }
-}
-if (isset($input['invoiceBillFile'])) {
-  $m = 1;
-  foreach ($input['invoiceBillFile'] as $key => $file) {
-    if ($m <= $input['num_invoice_detail']) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'invoice_bill' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      $maxInvoiceBillDetails = Config::get('constants.CONST_MAX_COPY_OF_INVOICE_BILL_DETAILS');
+      if ($deletedQuestionHelper->isQuestionValid("F3.4")) {
+        $maxInvoiceBillDetailsCount = $input['num_invoice_detail'];
+        for ($i = 1; $i < $maxInvoiceBillDetails; $i++) {
+          if ($maxInvoiceBillDetailsCount == 1 && $i > $maxInvoiceBillDetailsCount) {
+            $fieldName = 'business_invoice_bill' . $i . '_file_path';
+            $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
+            $equipmentBillDetails->save();
+          } elseif ($maxInvoiceBillDetailsCount == 2 && $i > $maxInvoiceBillDetailsCount) {
+            $fieldName = 'business_invoice_bill' . $i . '_file_path';
+            $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
+            $equipmentBillDetails->save();
+          } elseif ($maxInvoiceBillDetailsCount == 3 && $i > $maxInvoiceBillDetailsCount) {
+            $fieldName = 'business_invoice_bill' . $i . '_file_path';
+            $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
+            $equipmentBillDetails->save();
+          } elseif ($maxInvoiceBillDetailsCount == 4 && $i > $maxInvoiceBillDetailsCount) {
+            $fieldName = 'business_invoice_bill' . $i . '_file_path';
+            $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
+            $equipmentBillDetails->save();
+          }
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-      
       }
-    } else {
-      break;
-    }
-    $m++;
-  }
-}
+      if (isset($input['invoiceBillFile'])) {
+        $m = 1;
+        foreach ($input['invoiceBillFile'] as $key => $file) {
+          if ($m <= $input['num_invoice_detail']) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'invoice_bill' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+
+            }
+          } else {
+            break;
+          }
+          $m++;
+        }
+      }
 //===========Security Documents Uploads=============//
-$maxSecurityDocument = Config::get('constants.CONST_MAX_SECURITY_DOCUMENT_DETAILS');
-if (isset($input['num_security_doc'])) {
-  $maxSecurityDocumentCount = $input['num_security_doc'];
-  for ($i = 1; $i <= $maxSecurityDocument; $i++) {
-    if ($maxSecurityDocumentCount == 1 && $i > $maxSecurityDocumentCount) {
-      $fieldName1 = 'last_pro_val_report' . $i . '_path';
-      $fieldName2 = 'pro_title_search_report' . $i . '_path';
-      $fieldName3 = 'pro_tax_card' . $i . '_path';
-      $fieldName4 = 'oc' . $i . '_path';
-      $fieldName5 = 'society_share_cert' . $i . '_path';
-      $fieldName6 = 'copy_7_12_extract' . $i . '_path';
-      $fieldName7 = 'copy_last_sales_pur' . $i . '_path';
-      $fieldName8 = 'municipal_plan' . $i . '_path';
-      $securityDocs = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName1 => null, $fieldName2 => null, $fieldName3 => null, $fieldName4 => null, $fieldName5 => null, $fieldName6 => null, $fieldName7 => null, $fieldName8 => null]);
-      $securityDocs->save();
-    } elseif ($maxSecurityDocumentCount == 2 && $i > $maxSecurityDocumentCount) {
-      $fieldName1 = 'last_pro_val_report' . $i . '_path';
-      $fieldName2 = 'pro_title_search_report' . $i . '_path';
-      $fieldName3 = 'pro_tax_card' . $i . '_path';
-      $fieldName4 = 'oc' . $i . '_path';
-      $fieldName5 = 'society_share_cert' . $i . '_path';
-      $fieldName6 = 'copy_7_12_extract' . $i . '_path';
-      $fieldName7 = 'copy_last_sales_pur' . $i . '_path';
-      $fieldName8 = 'municipal_plan' . $i . '_path';
-      $securityDocs = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName1 => null, $fieldName2 => null, $fieldName3 => null, $fieldName4 => null, $fieldName5 => null, $fieldName6 => null, $fieldName7 => null, $fieldName8 => null]);
-      $securityDocs->save();
-    }
-  }
-}
-if (isset($input['security_lastvaluation_file'])) {
-  $cnt = 0;
-  foreach ($input['security_lastvaluation_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'last_valuation' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      $maxSecurityDocument = Config::get('constants.CONST_MAX_SECURITY_DOCUMENT_DETAILS');
+      if (isset($input['num_security_doc'])) {
+        $maxSecurityDocumentCount = $input['num_security_doc'];
+        for ($i = 1; $i <= $maxSecurityDocument; $i++) {
+          if ($maxSecurityDocumentCount == 1 && $i > $maxSecurityDocumentCount) {
+            $fieldName1 = 'last_pro_val_report' . $i . '_path';
+            $fieldName2 = 'pro_title_search_report' . $i . '_path';
+            $fieldName3 = 'pro_tax_card' . $i . '_path';
+            $fieldName4 = 'oc' . $i . '_path';
+            $fieldName5 = 'society_share_cert' . $i . '_path';
+            $fieldName6 = 'copy_7_12_extract' . $i . '_path';
+            $fieldName7 = 'copy_last_sales_pur' . $i . '_path';
+            $fieldName8 = 'municipal_plan' . $i . '_path';
+            $securityDocs = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName1 => null, $fieldName2 => null, $fieldName3 => null, $fieldName4 => null, $fieldName5 => null, $fieldName6 => null, $fieldName7 => null, $fieldName8 => null]);
+            $securityDocs->save();
+          } elseif ($maxSecurityDocumentCount == 2 && $i > $maxSecurityDocumentCount) {
+            $fieldName1 = 'last_pro_val_report' . $i . '_path';
+            $fieldName2 = 'pro_title_search_report' . $i . '_path';
+            $fieldName3 = 'pro_tax_card' . $i . '_path';
+            $fieldName4 = 'oc' . $i . '_path';
+            $fieldName5 = 'society_share_cert' . $i . '_path';
+            $fieldName6 = 'copy_7_12_extract' . $i . '_path';
+            $fieldName7 = 'copy_last_sales_pur' . $i . '_path';
+            $fieldName8 = 'municipal_plan' . $i . '_path';
+            $securityDocs = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName1 => null, $fieldName2 => null, $fieldName3 => null, $fieldName4 => null, $fieldName5 => null, $fieldName6 => null, $fieldName7 => null, $fieldName8 => null]);
+            $securityDocs->save();
+          }
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
-   
       }
-    }
-  } else {
-    break;
-  }
-}
-}
-if (isset($input['security_titlesearch_file'])) {
-  $cnt = 0;
-  foreach ($input['security_titlesearch_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'title_search' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      if (isset($input['security_lastvaluation_file'])) {
+        $cnt = 0;
+        foreach ($input['security_lastvaluation_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'last_valuation' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
+
+              }
+            }
+          } else {
+            break;
+          }
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
-       
       }
-    }
-  } else {
-    break;
-  }
-}
-}
-if (isset($input['security_propertytax_file'])) {
-  $cnt = 0;
-  foreach ($input['security_propertytax_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'property_tax' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      if (isset($input['security_titlesearch_file'])) {
+        $cnt = 0;
+        foreach ($input['security_titlesearch_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'title_search' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
+
+              }
+            }
+          } else {
+            break;
+          }
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
-      
       }
-    }
-  } else {
-    break;
-  }
-}
-}
-if (isset($input['security_occupation_file'])) {
-  $cnt = 0;
-  foreach ($input['security_occupation_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'occupation_copy' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      if (isset($input['security_propertytax_file'])) {
+        $cnt = 0;
+        foreach ($input['security_propertytax_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'property_tax' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
+
+              }
+            }
+          } else {
+            break;
+          }
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
-     
       }
-    }
-  } else {
-    break;
-  }
-}
-}
-if (isset($input['security_societyshare_file'])) {
-  $cnt = 0;
-  foreach ($input['security_societyshare_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'society_share' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      if (isset($input['security_occupation_file'])) {
+        $cnt = 0;
+        foreach ($input['security_occupation_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'occupation_copy' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
+
+              }
+            }
+          } else {
+            break;
+          }
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
-    
       }
-    }
-  } else {
-    break;
-  }
-}
-}
-if (isset($input['security_712extract_file'])) {
-  $cnt = 0;
-  foreach ($input['security_712extract_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . '712_extract' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      if (isset($input['security_societyshare_file'])) {
+        $cnt = 0;
+        foreach ($input['security_societyshare_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'society_share' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
+
+              }
+            }
+          } else {
+            break;
+          }
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
-      
       }
-    }
-  } else {
-    break;
-  }
-}
-}
-if (isset($input['security_lastsaledeed_file'])) {
-  $cnt = 0;
-  foreach ($input['security_lastsaledeed_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'last_sale_deed' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      if (isset($input['security_712extract_file'])) {
+        $cnt = 0;
+        foreach ($input['security_712extract_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . '712_extract' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
+
+              }
+            }
+          } else {
+            break;
+          }
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
-   
       }
-    }
-  } else {
-    break;
-  }
-}
-}
-if (isset($input['muncipal_plan'])) {
-  $cnt = 0;
-  foreach ($input['muncipal_plan'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'muncipal_plan' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      if (isset($input['security_lastsaledeed_file'])) {
+        $cnt = 0;
+        foreach ($input['security_lastsaledeed_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'last_sale_deed' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
+
+              }
+            }
+          } else {
+            break;
+          }
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
-      
       }
-    }
-  } else {
-    break;
-  }
-}
-}
-if (isset($input['electricity_bill'])) {
-  $cnt = 0;
-  foreach ($input['electricity_bill'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'electricity_bill' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      if (isset($input['muncipal_plan'])) {
+        $cnt = 0;
+        foreach ($input['muncipal_plan'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'muncipal_plan' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
+
+              }
+            }
+          } else {
+            break;
+          }
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+      }
+      if (isset($input['electricity_bill'])) {
+        $cnt = 0;
+        foreach ($input['electricity_bill'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'electricity_bill' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
             } 
 
-} else {
-  break;
-}
-}
-}
-if (isset($uploadDetails)) {
-  $uploadDetails->save();
-}
-}
-$loan = null;
-if (isset($loanId)) {
-  $loan = Loan::find($loanId);
-}
-$loansStatus = LoansStatus::updateOrCreate(['loan_id' => $loan->id], ['loan_id' => $loanId, 'upload_documents' => 'Y']);
-$loansStatus->save();
-$this->getLoansStatus($loanId);
-$validator = Validator::make($fieldsArr, $rulesArr, $messagesArr);
-if ($validator->fails()) {
-  return Redirect::back()->withErrors($validator)->withInput();
-} else {
-  session()->flash('flash_message', 'Document successfully uploaded!');
-}
+          } else {
+            break;
+          }
+        }
+      }
+      if (isset($uploadDetails)) {
+        $uploadDetails->save();
+      }
+    }
+    $loan = null;
+    if (isset($loanId)) {
+      $loan = Loan::find($loanId);
+    }
+    $loansStatus = LoansStatus::updateOrCreate(['loan_id' => $loan->id], ['loan_id' => $loanId, 'upload_documents' => 'Y']);
+    $loansStatus->save();
+    $this->getLoansStatus($loanId);
+    $validator = Validator::make($fieldsArr, $rulesArr, $messagesArr);
+    if ($validator->fails()) {
+      return Redirect::back()->withErrors($validator)->withInput();
+    } else {
+      session()->flash('flash_message', 'Document successfully uploaded!');
+    }
 
-$redirectUrl = 'home';
-return Redirect::to($redirectUrl);
-}
+    $redirectUrl = 'home';
+    return Redirect::to($redirectUrl);
+  }
 
   /**
    * @param $loanType
@@ -4717,7 +4723,7 @@ return Redirect::to($redirectUrl);
       $amount = $loan->loan_amount;
       $loanTenure = $loan->loan_tenure;
       $endUseList = $loan->end_use;
-      $userId = $loan->user_id;
+      $userId = $loan->user_id; 
       $userProfile = UserProfile::where('user_id', '=', $userId)->get()->first();
       $ratingModel = AnalystModelRating::with('ratingDetails')->where('model_type', '=', $modelType)->where('loan_id', '=', $loanId)->get()->first();
     }
@@ -4799,39 +4805,39 @@ return Redirect::to($redirectUrl);
     $loanId = $input['loanId'];
     $ratingsId = null;
   //$finalRating = $input['final_rating'];
-  if(isset($input['resetProposal'])){
+    if(isset($input['resetProposal'])){
   //  echo "Reset code";
     //find  loan id take id from loan id
       // $user = AnalystModelRating::findOrFail('157')->delete();
        //$user = AnalystModelRating::ratingDetails()->get('157');
 
-          $deltedRecord= $input['analyst_model_rating_details'][1]['ratings_id'];
+      $deltedRecord= $input['analyst_model_rating_details'][1]['ratings_id'];
 
-          $comments = AnalystModelRating::find($deltedRecord);
-          $comments->ratingDetails()->delete();
-          $comments->delete();
-         $redirectUrl = 'loans/credit-model/' . $loanId;
-           return Redirect::to($redirectUrl);
- 
+      $comments = AnalystModelRating::find($deltedRecord);
+      $comments->ratingDetails()->delete();
+      $comments->delete();
+      $redirectUrl = 'loans/credit-model/' . $loanId;
+      return Redirect::to($redirectUrl);
+
        //$user = AnalystModelRating::findOrFail('157')->on('loan_id')->delete();
       
     // AnalystModelRatingDetails::updateOrCreate(['id' => $id], $record);  //Loan_id
 
-  }else{
-    if (isset($input['rejectProposal']) && $input['rejectProposal'] == 'RejectProposal') {
-      $loansStatus = LoansStatus::updateOrCreate(['loan_id' => $loanId], ['loan_id' => $loanId, 'rejected' => 'Y', 'remark' => $input['remark']]);
-      $loansStatus->save();
-      $this->getLoansStatus($loanId);
-    } else {
-      if (isset($input['ratings_id'])) {
-        $ratingsId = $input['ratings_id'];
-      }
-      if (!isset($input['status'])) {
-        $record['status'] = 1;
-      }
-       $ratingsModel = AnalystModelRating::updateOrCreate(['id' => $ratingsId], $input);
-      $ratingsId = $ratingsModel->id;
-      $modelRatingsDetailsList = new Collection($input['analyst_model_rating_details']);
+    }else{
+      if (isset($input['rejectProposal']) && $input['rejectProposal'] == 'RejectProposal') {
+        $loansStatus = LoansStatus::updateOrCreate(['loan_id' => $loanId], ['loan_id' => $loanId, 'rejected' => 'Y', 'remark' => $input['remark']]);
+        $loansStatus->save();
+        $this->getLoansStatus($loanId);
+      } else {
+        if (isset($input['ratings_id'])) {
+          $ratingsId = $input['ratings_id'];
+        }
+        if (!isset($input['status'])) {
+          $record['status'] = 1;
+        }
+        $ratingsModel = AnalystModelRating::updateOrCreate(['id' => $ratingsId], $input);
+        $ratingsId = $ratingsModel->id;
+        $modelRatingsDetailsList = new Collection($input['analyst_model_rating_details']);
     /*  echo "<pre>";
       print_r($modelRatingsDetailsList);
       echo "</pre>";*/
@@ -4839,8 +4845,8 @@ return Redirect::to($redirectUrl);
         $id = null;   //yes
         if (isset($record['id']) && !empty($record['id'])) { 
          echo  $id = $record['id'];
-        }
-        if (!isset($record['ratings_id']) || empty($record['ratings_id'])) {
+       }
+       if (!isset($record['ratings_id']) || empty($record['ratings_id'])) {
           $record['ratings_id'] = $ratingsId;  //yes
         }
         if (!isset($record['status']) || empty($record['status'])) {
@@ -4849,42 +4855,42 @@ return Redirect::to($redirectUrl);
 //        echo $id.'sa';
 
         
-       AnalystModelRatingDetails::updateOrCreate(['id' => $id], $record);
+        AnalystModelRatingDetails::updateOrCreate(['id' => $id], $record);
       }
 /*echo "<pre>";
 print_r($record);
 echo "</pre>";
 die();*/
     //session()->flash('flash_message', 'Credit Model was successfully saved!');
-      $loansStatus = LoansStatus::updateOrCreate(['loan_id' => $loanId], ['loan_id' => $loanId, 'credit_model' => 'Y', 'rejected' => 'N', 'remark' => null]);
-      $loansStatus->save();
-      $this->getLoansStatus($loanId);
-    }
+$loansStatus = LoansStatus::updateOrCreate(['loan_id' => $loanId], ['loan_id' => $loanId, 'credit_model' => 'Y', 'rejected' => 'N', 'remark' => null]);
+$loansStatus->save();
+$this->getLoansStatus($loanId);
+}
 
       //  echo "string";
-    $validLoanHelper = new validLoanUrlhelper();
-    if (isset($loanId)) {
+$validLoanHelper = new validLoanUrlhelper();
+if (isset($loanId)) {
     //  echo "string";
 
-      $isCollateralVisible = $validLoanHelper->collateralModel($loanId);
+  $isCollateralVisible = $validLoanHelper->collateralModel($loanId);
 
-      if ($isCollateralVisible) {
+  if ($isCollateralVisible) {
 
-        $redirectUrl = $redirectUrl = 'loans/collateral-model/' . $loanId;
-      } else {
-        if (isset($input['submitToBank']) && $input['submitToBank'] == 'Save') {
-          session()->flash('message', 'Credit Model was successfully saved! please Create Proposal');
-          $redirectUrl = 'home';
-        } elseif (isset($input['simpleSave']) && $input['simpleSave'] == 'Save') {
-          $redirectUrl = 'loans/credit-model/' . $loanId;
-        }
-      }
+    $redirectUrl = $redirectUrl = 'loans/collateral-model/' . $loanId;
+  } else {
+    if (isset($input['submitToBank']) && $input['submitToBank'] == 'Save') {
+      session()->flash('message', 'Credit Model was successfully saved! please Create Proposal');
+      $redirectUrl = 'home';
+    } elseif (isset($input['simpleSave']) && $input['simpleSave'] == 'Save') {
+      $redirectUrl = 'loans/credit-model/' . $loanId;
     }
+  }
+}
     //$redirectUrl = 'loans/collateral-model/' . $loanId;
     //$redirectUrl = 'loans/data-cash-flow-model/' . $loanId;
-    return Redirect::to($redirectUrl);
-  }
- 
+return Redirect::to($redirectUrl);
+}
+
 }
 
 
@@ -5763,33 +5769,33 @@ return Redirect::to($redirectUrl);
           }
 
 
-           if ($is_approved == "Y") {
+          if ($is_approved == "Y") {
               $loan_statusID = 24; //Application Submitted
             }
 
-        }
-
-
-
-        $loan = Loan::where('id', $loanid)->update(['status' => $loan_statusID]);
-        if (isset($loanid) && $loan_statusID == 4) {
-  //Allocate if loan was submitted to bank
-          $loanRecord = Loan::find($loanid);
-          if (isset($loanRecord->user_id)) {
-            $user = User::find($loanRecord->user_id);
-            $bankAllocationHelper = new BankAllocationHelper();
-            $bankAllocationHelper->allocate($loanRecord, $user);
-          } else {
-            Log::error("No valid user id found for loan id - ", [$loanid]);
           }
+
+
+
+          $loan = Loan::where('id', $loanid)->update(['status' => $loan_statusID]);
+          if (isset($loanid) && $loan_statusID == 4) {
+  //Allocate if loan was submitted to bank
+            $loanRecord = Loan::find($loanid);
+            if (isset($loanRecord->user_id)) {
+              $user = User::find($loanRecord->user_id);
+              $bankAllocationHelper = new BankAllocationHelper();
+              $bankAllocationHelper->allocate($loanRecord, $user);
+            } else {
+              Log::error("No valid user id found for loan id - ", [$loanid]);
+            }
+          }
+          return $loan_statusID;
         }
-        return $loan_statusID;
-      }
 
 //================================
-      public function setFinancialYears()
-      {
-        return $this->dummyDateMK();
+        public function setFinancialYears()
+        {
+          return $this->dummyDateMK();
   // $currentFinancialYear = intval(date('Y'));
   // $currentMonth = intval(date('m'));
   // $currentFY = null;
@@ -5847,79 +5853,79 @@ return Redirect::to($redirectUrl);
   //     }
   // }
   // return $fin_bl_year;
-      }
+        }
 
-      public function dummyDate()
-      {
-        $currentFinancialYear = 2016;
-        $currentMonth = 1;
-        $currentFY = null;
-        if ($currentMonth > 6) {
+        public function dummyDate()
+        {
+          $currentFinancialYear = 2016;
+          $currentMonth = 1;
+          $currentFY = null;
+          if ($currentMonth > 6) {
     // FY is current - next year
-          $currentFY = $currentFinancialYear;
-        } else {
+            $currentFY = $currentFinancialYear;
+          } else {
     // FY is prev - current year
-          $currentFY = $currentFinancialYear - 1;
-        }
+            $currentFY = $currentFinancialYear - 1;
+          }
   // Check current date falls between provisional range
-        $currentDateTimestamp = strtotime($currentFinancialYear . '-' . $currentMonth . '-11');
-        $provisionalStartDate = strtotime($currentFinancialYear . '-07-01');
-        $provisionalEndDate = strtotime($currentFinancialYear . '-10-31');
-        $goTillLastYear = 3;
-        if ($currentDateTimestamp >= $provisionalStartDate && $currentDateTimestamp <= $provisionalEndDate) {
+          $currentDateTimestamp = strtotime($currentFinancialYear . '-' . $currentMonth . '-11');
+          $provisionalStartDate = strtotime($currentFinancialYear . '-07-01');
+          $provisionalEndDate = strtotime($currentFinancialYear . '-10-31');
+          $goTillLastYear = 3;
+          if ($currentDateTimestamp >= $provisionalStartDate && $currentDateTimestamp <= $provisionalEndDate) {
     // In provision
-          $goTillLastYear = 4;
-        } else if ($currentDateTimestamp > $provisionalStartDate) {
+            $goTillLastYear = 4;
+          } else if ($currentDateTimestamp > $provisionalStartDate) {
     // $currentFY = $currentFY - 1;
-          $goTillLastYear = 3;
-        } else {
-          $goTillLastYear = 3;
+            $goTillLastYear = 3;
+          } else {
+            $goTillLastYear = 3;
+          }
+          $fin_bl_year = [];
+          $secondPart = null;
+          for ($i = $currentFY, $l = $currentFY - $goTillLastYear; $i > $l; $i--) {
+            $firstPart = ($i - 1);
+            $secondPart = str_replace('20', '', ($i));
+            $value = 'FY' . $firstPart . '-' . $secondPart;
+            if ($currentMonth <= 10) {
+              if (str_replace('20', '', $currentFinancialYear) == str_replace('20', '', ($i))) {
+                $value .= '(Provisional)';
+              }
+            }
+            $fin_bl_year[('FY' . $firstPart . '-' . $secondPart)] = ($value);
+          }
+          return $fin_bl_year;
         }
-        $fin_bl_year = [];
-        $secondPart = null;
-        for ($i = $currentFY, $l = $currentFY - $goTillLastYear; $i > $l; $i--) {
-          $firstPart = ($i - 1);
-          $secondPart = str_replace('20', '', ($i));
-          $value = 'FY' . $firstPart . '-' . $secondPart;
-          if ($currentMonth <= 10) {
-            if (str_replace('20', '', $currentFinancialYear) == str_replace('20', '', ($i))) {
-              $value .= '(Provisional)';
+
+        public function dummyDateMK()
+        {
+          $toShow = 3;
+          $provi = 'n';
+          $currentFinancialYear = date("Y");
+          $currentMonth = date("m");
+          $currentFY = $currentFinancialYear;
+          if ($currentMonth > 6) {
+            $currentFY++;
+            if ($currentMonth < 10) {
+              $toShow++;
+              $provi = 'y';
             }
           }
-          $fin_bl_year[('FY' . $firstPart . '-' . $secondPart)] = ($value);
-        }
-        return $fin_bl_year;
-      }
+          for ($i = 0; $i < $toShow; $i++) {
+            if ($provi == 'y') {
+              $use = '(Prov)';
+              $provi = 'n';
+            } else {
+              $use = '';
+            }
+            $currentFY--;
+            $year1 = 'FY ' . ($currentFY - 1) . '-' . substr($currentFY, -2) . $use;
 
-      public function dummyDateMK()
-      {
-        $toShow = 3;
-        $provi = 'n';
-        $currentFinancialYear = date("Y");
-        $currentMonth = date("m");
-        $currentFY = $currentFinancialYear;
-        if ($currentMonth > 6) {
-          $currentFY++;
-          if ($currentMonth < 10) {
-            $toShow++;
-            $provi = 'y';
+
+            $fin_bl_year[$year1] = $year1;
           }
+          return $fin_bl_year;
         }
-        for ($i = 0; $i < $toShow; $i++) {
-          if ($provi == 'y') {
-            $use = '(Prov)';
-            $provi = 'n';
-          } else {
-            $use = '';
-          }
-          $currentFY--;
-          $year1 = 'FY ' . ($currentFY - 1) . '-' . substr($currentFY, -2) . $use;
-
-
-          $fin_bl_year[$year1] = $year1;
-        }
-        return $fin_bl_year;
-      }
 
 
   /**
@@ -7603,7 +7609,7 @@ public function getApprover($loanType, $endUseList = null, $amount = null, $loan
   }
 
 
- 
+
 
   public function getLoancomment($param1 = null, $param2 = null, $param3 = null, $param4 = null, $param5 = null, $param6 = null, $param7 = null)
   {
@@ -7832,7 +7838,7 @@ public function getApprover($loanType, $endUseList = null, $amount = null, $loan
 
 
   $cor_file =null;
- 
+
 
   $gst_file_path = null;
   $gst_company_file = null;
@@ -8233,7 +8239,7 @@ public function postCreatechecklist(Request $request)
       $directory = $user_id . "/" . $loanId;
       $uploadDetails = null;
 
- 
+
       foreach ($bl_year as $year) {
         $countYear++;
         if ($request->file('other_file' . $countYear . '_path')) {
@@ -8468,7 +8474,7 @@ public function postCreatechecklist(Request $request)
 
       //new for cibil promoter file
 
-            if ($request->file('prom_cibil_file_path')) {
+      if ($request->file('prom_cibil_file_path')) {
         $file = $request->file('prom_cibil_file_path');
         $originalFileName = $file->getClientOriginalName();
         $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'cibil_file' . '_' . $originalFileName;
@@ -8487,616 +8493,616 @@ public function postCreatechecklist(Request $request)
 
 
 
-if ($request->file('business_corporate_file_path')) {
-  $file = $request->file('business_corporate_file_path');
-  $originalFileName = $file->getClientOriginalName();
-  $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'corporate_presentation' . '_' . $originalFileName;
-  $oldFileName = null;
-  $fieldName = 'business_corporate_file_path';
-  if (!isset($uploadDetails)) {
-    $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-  }
-  if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-    $oldFileName = $uploadDetails->getAttribute($fieldName);
-  }
-  $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-  $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-}
-if ($request->file('business_cert_ecom_file_path')) {
-  $file = $request->file('business_cert_ecom_file_path');
-  $originalFileName = $file->getClientOriginalName();
-  $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'e-commerce_certificate' . $i . '_' . $originalFileName;
-  $oldFileName = null;
-  $fieldName = 'business_cert_ecom_file_path';
-  if (!isset($uploadDetails)) {
-    $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-  }
-  if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-    $oldFileName = $uploadDetails->getAttribute($fieldName);
-  }
-  $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-  $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-}
+      if ($request->file('business_corporate_file_path')) {
+        $file = $request->file('business_corporate_file_path');
+        $originalFileName = $file->getClientOriginalName();
+        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'corporate_presentation' . '_' . $originalFileName;
+        $oldFileName = null;
+        $fieldName = 'business_corporate_file_path';
+        if (!isset($uploadDetails)) {
+          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+        }
+        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+          $oldFileName = $uploadDetails->getAttribute($fieldName);
+        }
+        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+      }
+      if ($request->file('business_cert_ecom_file_path')) {
+        $file = $request->file('business_cert_ecom_file_path');
+        $originalFileName = $file->getClientOriginalName();
+        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'e-commerce_certificate' . $i . '_' . $originalFileName;
+        $oldFileName = null;
+        $fieldName = 'business_cert_ecom_file_path';
+        if (!isset($uploadDetails)) {
+          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+        }
+        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+          $oldFileName = $uploadDetails->getAttribute($fieldName);
+        }
+        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+      }
 //Invoice Copy of Equipment Purchase
-$maxInvoiceCopyofEquipmentPurchase = Config::get('constants.CONST_MAX_INVOICE_COPY_OF_EQUIPMENT_PURCHASE');
+      $maxInvoiceCopyofEquipmentPurchase = Config::get('constants.CONST_MAX_INVOICE_COPY_OF_EQUIPMENT_PURCHASE');
 
 
-if (isset($input['equipementPurchase'])) {
-  $m = 1;
-  foreach ($input['equipementPurchase'] as $key => $file) {
-    if ($m <= $input['num_equi_purchase']) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'equipment_copy' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      if (isset($input['equipementPurchase'])) {
+        $m = 1;
+        foreach ($input['equipementPurchase'] as $key => $file) {
+          if ($m <= $input['num_equi_purchase']) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'equipment_copy' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+
+
+
+
+            }
+          } else {
+            break;
+          }
+          $m++;
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-
-
-
-
       }
-    } else {
-      break;
-    }
-    $m++;
-  }
-}
 //Copy of Invoice/Bill details
-$maxInvoiceBillDetails = Config::get('constants.CONST_MAX_COPY_OF_INVOICE_BILL_DETAILS');
-if ($deletedQuestionHelper->isQuestionValid("F3.4")) {
-  $maxInvoiceBillDetailsCount = $input['num_invoice_detail'];
-  for ($i = 1; $i < $maxInvoiceBillDetails; $i++) {
-    if ($maxInvoiceBillDetailsCount == 1 && $i > $maxInvoiceBillDetailsCount) {
-      $fieldName = 'loan_doc_bill' . $i . '_file_path';
-      $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
-      $equipmentBillDetails->save();
-    } elseif ($maxInvoiceBillDetailsCount == 2 && $i > $maxInvoiceBillDetailsCount) {
-      $fieldName = 'loan_doc_bill' . $i . '_file_path';
-      $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
-      $equipmentBillDetails->save();
-    } elseif ($maxInvoiceBillDetailsCount == 3 && $i > $maxInvoiceBillDetailsCount) {
-      $fieldName = 'loan_doc_bill' . $i . '_file_path';
-      $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
-      $equipmentBillDetails->save();
-    } elseif ($maxInvoiceBillDetailsCount == 4 && $i > $maxInvoiceBillDetailsCount) {
-      $fieldName = 'loan_doc_bill' . $i . '_file_path';
-      $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
-      $equipmentBillDetails->save();
-    } elseif ($maxInvoiceBillDetailsCount == 5 && $i > $maxInvoiceBillDetailsCount) {
-      $fieldName = 'loan_doc_bill' . $i . '_file_path';
-      $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
-      $equipmentBillDetails->save();
-    } 
-  }
-}
-if (isset($input['loanDocFile'])) {
-  $m = 1;
-  foreach ($input['loanDocFile'] as $key => $file) {
-    if ($m <= $input['num_invoice_detail']) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'invoice_bill' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      $maxInvoiceBillDetails = Config::get('constants.CONST_MAX_COPY_OF_INVOICE_BILL_DETAILS');
+      if ($deletedQuestionHelper->isQuestionValid("F3.4")) {
+        $maxInvoiceBillDetailsCount = $input['num_invoice_detail'];
+        for ($i = 1; $i < $maxInvoiceBillDetails; $i++) {
+          if ($maxInvoiceBillDetailsCount == 1 && $i > $maxInvoiceBillDetailsCount) {
+            $fieldName = 'loan_doc_bill' . $i . '_file_path';
+            $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
+            $equipmentBillDetails->save();
+          } elseif ($maxInvoiceBillDetailsCount == 2 && $i > $maxInvoiceBillDetailsCount) {
+            $fieldName = 'loan_doc_bill' . $i . '_file_path';
+            $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
+            $equipmentBillDetails->save();
+          } elseif ($maxInvoiceBillDetailsCount == 3 && $i > $maxInvoiceBillDetailsCount) {
+            $fieldName = 'loan_doc_bill' . $i . '_file_path';
+            $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
+            $equipmentBillDetails->save();
+          } elseif ($maxInvoiceBillDetailsCount == 4 && $i > $maxInvoiceBillDetailsCount) {
+            $fieldName = 'loan_doc_bill' . $i . '_file_path';
+            $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
+            $equipmentBillDetails->save();
+          } elseif ($maxInvoiceBillDetailsCount == 5 && $i > $maxInvoiceBillDetailsCount) {
+            $fieldName = 'loan_doc_bill' . $i . '_file_path';
+            $equipmentBillDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => null]);
+            $equipmentBillDetails->save();
+          } 
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-
-
-
       }
-    } else {
-      break;
-    }
-    $m++;
-  }
-}
+      if (isset($input['loanDocFile'])) {
+        $m = 1;
+        foreach ($input['loanDocFile'] as $key => $file) {
+          if ($m <= $input['num_invoice_detail']) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'invoice_bill' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+
+
+
+            }
+          } else {
+            break;
+          }
+          $m++;
+        }
+      }
 //===========Security Documents Uploads=============//
-$maxSecurityDocument = Config::get('constants.CONST_MAX_SECURITY_DOCUMENT_DETAILS');
-if (isset($input['num_security_doc'])) {
-  $maxSecurityDocumentCount = $input['num_security_doc']; 
-  for ($i = 1; $i <= $maxSecurityDocument; $i++) {
-    if ($maxSecurityDocumentCount == 1 && $i > $maxSecurityDocumentCount) {
-      $fieldName1 = 'mortagage_pro_val_report' . $i . '_path';
-      $fieldName2 = 'pro_hypothication_search_report' . $i . '_path';
-      $fieldName3 = 'escrow_agreement_card' . $i . '_path';
-      $fieldName4 = 'nach' . $i . '_path';
-      $fieldName5 = 'pdc_security' . $i . '_path';
-      $fieldName6 = 'pdc_covering_letter' . $i . '_path';
-      $fieldName7 = 'security1_other' . $i . '_path';
-      $fieldName8 = 'security2_other' . $i . '_path';
-      $fieldName9 = 'security3_other' . $i . '_path';
-      $securityDocs = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName1 => null, $fieldName2 => null, $fieldName3 => null, $fieldName4 => null, $fieldName5 => null, $fieldName6 => null, $fieldName7 => null, $fieldName8 => null, $fieldName9 => null]);
-      $securityDocs->save();
-    } elseif ($maxSecurityDocumentCount == 2 && $i > $maxSecurityDocumentCount) {
-      $fieldName1 = 'mortagage_pro_val_report' . $i . '_path';
-      $fieldName2 = 'pro_hypothication_search_report' . $i . '_path';
-      $fieldName3 = 'escrow_agreement_card' . $i . '_path';
-      $fieldName4 = 'nach' . $i . '_path';
-      $fieldName5 = 'pdc_security' . $i . '_path';
-      $fieldName6 = 'pdc_covering_letter' . $i . '_path';
-      $fieldName7 = 'security1_other' . $i . '_path';
-      $fieldName8 = 'security2_other' . $i . '_path';
-      $fieldName9 = 'security3_other' . $i . '_path';
-      $securityDocs = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName1 => null, $fieldName2 => null, $fieldName3 => null, $fieldName4 => null, $fieldName5 => null, $fieldName6 => null, $fieldName7 => null, $fieldName8 => null, $fieldName9 =>null]);
-      $securityDocs->save();
-    }
-  }
-}
-if (isset($input['mortagage_document_file'])) {
-  $cnt = 0;
-  foreach ($input['mortagage_document_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'mortagage_document' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-        }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
-
+      $maxSecurityDocument = Config::get('constants.CONST_MAX_SECURITY_DOCUMENT_DETAILS');
+      if (isset($input['num_security_doc'])) {
+        $maxSecurityDocumentCount = $input['num_security_doc']; 
+        for ($i = 1; $i <= $maxSecurityDocument; $i++) {
+          if ($maxSecurityDocumentCount == 1 && $i > $maxSecurityDocumentCount) {
+            $fieldName1 = 'mortagage_pro_val_report' . $i . '_path';
+            $fieldName2 = 'pro_hypothication_search_report' . $i . '_path';
+            $fieldName3 = 'escrow_agreement_card' . $i . '_path';
+            $fieldName4 = 'nach' . $i . '_path';
+            $fieldName5 = 'pdc_security' . $i . '_path';
+            $fieldName6 = 'pdc_covering_letter' . $i . '_path';
+            $fieldName7 = 'security1_other' . $i . '_path';
+            $fieldName8 = 'security2_other' . $i . '_path';
+            $fieldName9 = 'security3_other' . $i . '_path';
+            $securityDocs = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName1 => null, $fieldName2 => null, $fieldName3 => null, $fieldName4 => null, $fieldName5 => null, $fieldName6 => null, $fieldName7 => null, $fieldName8 => null, $fieldName9 => null]);
+            $securityDocs->save();
+          } elseif ($maxSecurityDocumentCount == 2 && $i > $maxSecurityDocumentCount) {
+            $fieldName1 = 'mortagage_pro_val_report' . $i . '_path';
+            $fieldName2 = 'pro_hypothication_search_report' . $i . '_path';
+            $fieldName3 = 'escrow_agreement_card' . $i . '_path';
+            $fieldName4 = 'nach' . $i . '_path';
+            $fieldName5 = 'pdc_security' . $i . '_path';
+            $fieldName6 = 'pdc_covering_letter' . $i . '_path';
+            $fieldName7 = 'security1_other' . $i . '_path';
+            $fieldName8 = 'security2_other' . $i . '_path';
+            $fieldName9 = 'security3_other' . $i . '_path';
+            $securityDocs = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName1 => null, $fieldName2 => null, $fieldName3 => null, $fieldName4 => null, $fieldName5 => null, $fieldName6 => null, $fieldName7 => null, $fieldName8 => null, $fieldName9 =>null]);
+            $securityDocs->save();
+          }
         }
       }
-    } else {
-      break;
-    }
-  }
-}
-if (isset($input['hypothication_agreement_file'])) {
-  $cnt = 0;
-  foreach ($input['hypothication_agreement_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'hypothication_agreement' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-        }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
+      if (isset($input['mortagage_document_file'])) {
+        $cnt = 0;
+        foreach ($input['mortagage_document_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'mortagage_document' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
 
+              }
+            }
+          } else {
+            break;
+          }
         }
       }
-    } else {
-      break;
-    }
-  }
-}
-if (isset($input['escrow_agreement_file'])) {
-  $cnt = 0;
-  foreach ($input['escrow_agreement_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'escrow_agreement' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-        }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
+      if (isset($input['hypothication_agreement_file'])) {
+        $cnt = 0;
+        foreach ($input['hypothication_agreement_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'hypothication_agreement' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
 
+              }
+            }
+          } else {
+            break;
+          }
         }
       }
-    } else {
-      break;
-    }
-  }
-}
-if (isset($input['nach_agreement_file'])) {
-  $cnt = 0;
-  foreach ($input['nach_agreement_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'nach_agreement' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-        }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
+      if (isset($input['escrow_agreement_file'])) {
+        $cnt = 0;
+        foreach ($input['escrow_agreement_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'escrow_agreement' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
 
+              }
+            }
+          } else {
+            break;
+          }
         }
       }
-    } else {
-      break;
-    }
-  }
-}
-if (isset($input['pdc_security_file'])) {
-  $cnt = 0;
-  foreach ($input['pdc_security_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'pdc' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-        }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
+      if (isset($input['nach_agreement_file'])) {
+        $cnt = 0;
+        foreach ($input['nach_agreement_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'nach_agreement' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
 
+              }
+            }
+          } else {
+            break;
+          }
         }
       }
-    } else {
-      break;
-    }
-  }
-}
-if (isset($input['pdc_covering_file'])) {
-  $cnt = 0;
-  foreach ($input['pdc_covering_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'pdc_covering_letter' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-        }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
+      if (isset($input['pdc_security_file'])) {
+        $cnt = 0;
+        foreach ($input['pdc_security_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'pdc' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
 
+              }
+            }
+          } else {
+            break;
+          }
         }
       }
-    } else {
-      break;
-    }
-  }
-}
-if (isset($input['other1_security_file'])) {
-  $cnt = 0;
-  foreach ($input['other1_security_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'other_security_doc1' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-        }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
+      if (isset($input['pdc_covering_file'])) {
+        $cnt = 0;
+        foreach ($input['pdc_covering_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'pdc_covering_letter' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
 
+              }
+            }
+          } else {
+            break;
+          }
         }
       }
-    } else {
-      break;
-    }
-  }
-}
-if (isset($input['other2_security_file'])) {
-  $cnt = 0;
-  foreach ($input['other2_security_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'other_security_doc2' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
-        }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } else {
-        if ($deletedQuestionHelper->isQuestionValid("F4")) {
+      if (isset($input['other1_security_file'])) {
+        $cnt = 0;
+        foreach ($input['other1_security_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'other_security_doc1' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
 
+              }
+            }
+          } else {
+            break;
+          }
         }
       }
-    } else {
-      break;
-    }
-  }
-}
-if (isset($input['other3_security_file'])) {
-  $cnt = 0;
-  foreach ($input['other3_security_file'] as $key => $file) {
-    $cnt++;
-    if ($cnt <= $maxSecurityDocumentCount) {
-      if (isset($file)) {
-        $originalFileName = $file->getClientOriginalName();
-        $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'other_security_doc3' . '-' . $originalFileName;
-        $oldFileName = null;
-        $fieldName = $key;
-        if (!isset($uploadDetails)) {
-          $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+      if (isset($input['other2_security_file'])) {
+        $cnt = 0;
+        foreach ($input['other2_security_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'other_security_doc2' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } else {
+              if ($deletedQuestionHelper->isQuestionValid("F4")) {
+
+              }
+            }
+          } else {
+            break;
+          }
         }
-        if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
-          $oldFileName = $uploadDetails->getAttribute($fieldName);
-        }
-        $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
-        $uploadDetails->setAttribute($fieldName, $uploadedFileName);
-      } 
+      }
+      if (isset($input['other3_security_file'])) {
+        $cnt = 0;
+        foreach ($input['other3_security_file'] as $key => $file) {
+          $cnt++;
+          if ($cnt <= $maxSecurityDocumentCount) {
+            if (isset($file)) {
+              $originalFileName = $file->getClientOriginalName();
+              $uploadedFileName = $directory . '/' . 'loan_' . $loanId . '-' . 'other_security_doc3' . '-' . $originalFileName;
+              $oldFileName = null;
+              $fieldName = $key;
+              if (!isset($uploadDetails)) {
+                $uploadDetails = Upload::updateOrCreate(['loan_id' => $loanId], [$fieldName => $uploadedFileName]);
+              }
+              if (isset($uploadDetails) && $uploadDetails->__isset($fieldName)) {
+                $oldFileName = $uploadDetails->getAttribute($fieldName);
+              }
+              $fileHelper->uploadFile($directory, $uploadedFileName, File::get($file), $oldFileName);
+              $uploadDetails->setAttribute($fieldName, $uploadedFileName);
+            } 
 
 
-    } else {
-      break;
+          } else {
+            break;
+          }
+        }
+      }
+      if (isset($uploadDetails)) {
+        $uploadDetails->save();
+      }
     }
-  }
-}
-if (isset($uploadDetails)) {
-  $uploadDetails->save();
-}
-}
-$loan = null;
-if (isset($loanId)) {
-  $loan = Loan::find($loanId);
-}
+    $loan = null;
+    if (isset($loanId)) {
+      $loan = Loan::find($loanId);
+    }
 
 // $loansStatus = LoansStatus::updateOrCreate(['loan_id' => $loan->id], ['loan_id' => $loanId, 'upload_documents' => 'Y']);
-$loansStatus = LoansStatus::updateOrCreate(['loan_id' => $loan->id], ['loan_id' => $loanId, 'create_checklist' => 'Y']);
-$loansStatus = Loan::updateOrCreate(['id' => $loanId], ['id' => $loanId, 'status' => '24']);
-$loansStatus->save();
-$test=$this->getLoansStatus($loanId);
+    $loansStatus = LoansStatus::updateOrCreate(['loan_id' => $loan->id], ['loan_id' => $loanId, 'create_checklist' => 'Y']);
+    $loansStatus = Loan::updateOrCreate(['id' => $loanId], ['id' => $loanId, 'status' => '24']);
+    $loansStatus->save();
+    $test=$this->getLoansStatus($loanId);
 
- 
-$validator = Validator::make($fieldsArr, $rulesArr, $messagesArr);
-if ($validator->fails()) {
-  return Redirect::back()->withErrors($validator)->withInput();
-} else {
-  session()->flash('flash_message', 'checklist successfully uploaded!');
-}
 
-$loan = PraposalChecklists::updateOrCreate(['loan_id' => $loanId], [
+    $validator = Validator::make($fieldsArr, $rulesArr, $messagesArr);
+    if ($validator->fails()) {
+      return Redirect::back()->withErrors($validator)->withInput();
+    } else {
+      session()->flash('flash_message', 'checklist successfully uploaded!');
+    }
+
+    $loan = PraposalChecklists::updateOrCreate(['loan_id' => $loanId], [
 
    // 'moa' => @$input['moa'],
       // 'moa' => @$input['moa'],
 
     //kyc of business start here
 
- 'moa_applicable1' => @$input['moa_applicable1'],
- 'moa_document1' => @$input['moa_document1'],
- 'moa_discrepancies1' => @$input['moa_discrepancies1'],
- 'moa_remark1' => @$input['moa_remark1'],
+     'moa_applicable1' => @$input['moa_applicable1'],
+     'moa_document1' => @$input['moa_document1'],
+     'moa_discrepancies1' => @$input['moa_discrepancies1'],
+     'moa_remark1' => @$input['moa_remark1'],
    //'moa_attachment1' => @$input['moa_attachment1'],
 
- 'cor_applicable1' => @$input['cor_applicable1'],
- 'cor_document1' => @$input['cor_document1'],
- 'cor_discrepancies1' => @$input['cor_discrepancies1'],
- 'cor_remark1' => @$input['cor_remark1'],
+     'cor_applicable1' => @$input['cor_applicable1'],
+     'cor_document1' => @$input['cor_document1'],
+     'cor_discrepancies1' => @$input['cor_discrepancies1'],
+     'cor_remark1' => @$input['cor_remark1'],
    //'cor_attachment1' => @$input['cor_attachment1'],
 
 
- 'pan_applicable1' => @$input['pan_applicable1'],
- 'pan_document1' => @$input['pan_document1'],
- 'pan_discrepancies1' => @$input['pan_discrepancies1'],
- 'pan_remark1' => @$input['pan_remark1'],
+     'pan_applicable1' => @$input['pan_applicable1'],
+     'pan_document1' => @$input['pan_document1'],
+     'pan_discrepancies1' => @$input['pan_discrepancies1'],
+     'pan_remark1' => @$input['pan_remark1'],
    //'pan_attachment1' => @$input['pan_attachment1'],
 
 
- 'shopcertificate_applicable1' => @$input['shopcertificate_applicable1'],
- 'shopcertificate_document1' => @$input['shopcertificate_document1'],
- 'shopcertificate_discrepancies1' => @$input['shopcertificate_discrepancies1'],
- 'shopcertificate_remark1' => @$input['shopcertificate_remark1'],
+     'shopcertificate_applicable1' => @$input['shopcertificate_applicable1'],
+     'shopcertificate_document1' => @$input['shopcertificate_document1'],
+     'shopcertificate_discrepancies1' => @$input['shopcertificate_discrepancies1'],
+     'shopcertificate_remark1' => @$input['shopcertificate_remark1'],
    //'shopcertificate_attachment1' => @$input['shopcertificate_attachment1'],
 
 
- 'gstcertificate_applicable1' => @$input['gstcertificate_applicable1'],
- 'gstcertificate_document1' => @$input['gstcertificate_document1'],
- 'gstcertificate_discrepancies1' => @$input['gstcertificate_discrepancies1'],
- 'gstcertificate_remark1' => @$input['gstcertificate_remark1'],
+     'gstcertificate_applicable1' => @$input['gstcertificate_applicable1'],
+     'gstcertificate_document1' => @$input['gstcertificate_document1'],
+     'gstcertificate_discrepancies1' => @$input['gstcertificate_discrepancies1'],
+     'gstcertificate_remark1' => @$input['gstcertificate_remark1'],
    //'gstcertificate_attachment1' => @$input['gstcertificate_attachment1'],
 
 
- 'ghumastalicence_applicable1' => @$input['ghumastalicence_applicable1'],
- 'ghumastalicence_document1' => @$input['ghumastalicence_document1'],
- 'ghumastalicence_discrepancies1' => @$input['ghumastalicence_discrepancies1'],
- 'ghumastalicence_remark1' => @$input['ghumastalicence_remark1'],
+     'ghumastalicence_applicable1' => @$input['ghumastalicence_applicable1'],
+     'ghumastalicence_document1' => @$input['ghumastalicence_document1'],
+     'ghumastalicence_discrepancies1' => @$input['ghumastalicence_discrepancies1'],
+     'ghumastalicence_remark1' => @$input['ghumastalicence_remark1'],
    //'ghumastalicence_attachment1' => @$input['ghumastalicence_attachment1'],
 
 
- 'rentagreement_applicable1' => @$input['rentagreement_applicable1'],
- 'rentagreement_document1' => @$input['rentagreement_document1'],
- 'rentagreement_discrepancies1' => @$input['rentagreement_discrepancies1'],
- 'rentagreement_remark1' => @$input['rentagreement_remark1'],
+     'rentagreement_applicable1' => @$input['rentagreement_applicable1'],
+     'rentagreement_document1' => @$input['rentagreement_document1'],
+     'rentagreement_discrepancies1' => @$input['rentagreement_discrepancies1'],
+     'rentagreement_remark1' => @$input['rentagreement_remark1'],
    //'rentagreement_attachment1' => @$input['rentagreement_attachment1'],
 
 
- 'udyogadhar_applicable1' => @$input['udyogadhar_applicable1'],
- 'udyogadhar_document1' => @$input['udyogadhar_document1'],
- 'udyogadhar_discrepancies1' => @$input['udyogadhar_discrepancies1'],
- 'udyogadhar_remark1' => @$input['udyogadhar_remark1'],
+     'udyogadhar_applicable1' => @$input['udyogadhar_applicable1'],
+     'udyogadhar_document1' => @$input['udyogadhar_document1'],
+     'udyogadhar_discrepancies1' => @$input['udyogadhar_discrepancies1'],
+     'udyogadhar_remark1' => @$input['udyogadhar_remark1'],
    //'udyogadhar_attachment1' => @$input['udyogadhar_attachment1'],
 
 
- 'electricitybill_applicable1' => @$input['electricitybill_applicable1'],
- 'electricitybill_document1' => @$input['electricitybill_document1'],
- 'electricitybill_discrepancies1' => @$input['electricitybill_discrepancies1'],
- 'electricitybill_remark1' => @$input['electricitybill_remark1'],
+     'electricitybill_applicable1' => @$input['electricitybill_applicable1'],
+     'electricitybill_document1' => @$input['electricitybill_document1'],
+     'electricitybill_discrepancies1' => @$input['electricitybill_discrepancies1'],
+     'electricitybill_remark1' => @$input['electricitybill_remark1'],
    //'electricitybill_attachment1' => @$input['electricitybill_attachment1'],
 
 
- 'cibilofentity_applicable1' => @$input['cibilofentity_applicable1'],
- 'cibilofentity_document1' => @$input['cibilofentity_document1'],
- 'cibilofentity_discrepancies1' => @$input['cibilofentity_discrepancies1'],
- 'cibilofentity_remark1' => @$input['cibilofentity_remark1'],
+     'cibilofentity_applicable1' => @$input['cibilofentity_applicable1'],
+     'cibilofentity_document1' => @$input['cibilofentity_document1'],
+     'cibilofentity_discrepancies1' => @$input['cibilofentity_discrepancies1'],
+     'cibilofentity_remark1' => @$input['cibilofentity_remark1'],
    //'cibilofentity_attachment1' => @$input['cibilofentity_attachment1'],
 
 
- 'other1_applicable1' => @$input['other1_applicable1'],
- 'other1_document1' => @$input['other1_document1'],
- 'other1_remarks' => @$input['other1_remarks'],
+     'other1_applicable1' => @$input['other1_applicable1'],
+     'other1_document1' => @$input['other1_document1'],
+     'other1_remarks' => @$input['other1_remarks'],
 
    //  //kyc of promoter start below
- 'pan2_applicable1' => @$input['pan2_applicable1'],
- 'pan2_document1' => @$input['pan2_document1'],
- 'pan2_discrepancies1' => @$input['pan2_discrepancies1'],
- 'pan2_remark2' => @$input['pan2_remark2'],
+     'pan2_applicable1' => @$input['pan2_applicable1'],
+     'pan2_document1' => @$input['pan2_document1'],
+     'pan2_discrepancies1' => @$input['pan2_discrepancies1'],
+     'pan2_remark2' => @$input['pan2_remark2'],
     //'pan2_attachment1' => @$input['pan2_attachment1'],
 
- 'addressproof_applicable1' => @$input['addressproof_applicable1'],
- 'addressproof_document1' => @$input['addressproof_document1'],
- 'addressproof_discrepancies1' => @$input['addressproof_discrepancies1'],
- 'addressproof_remark2' => @$input['addressproof_remark2'],
+     'addressproof_applicable1' => @$input['addressproof_applicable1'],
+     'addressproof_document1' => @$input['addressproof_document1'],
+     'addressproof_discrepancies1' => @$input['addressproof_discrepancies1'],
+     'addressproof_remark2' => @$input['addressproof_remark2'],
     //'addressproof_attachment1' => @$input['addressproof_attachment1'],
 
- 'networthcertificate_applicable1' => @$input['networthcertificate_applicable1'],
- 'networthcertificate_document1' => @$input['networthcertificate_document1'],
- 'networthcertificate_discrepancies1' => @$input['networthcertificate_discrepancies1'],
- 'networthcertificate_remark2' => @$input['networthcertificate_remark2'],
+     'networthcertificate_applicable1' => @$input['networthcertificate_applicable1'],
+     'networthcertificate_document1' => @$input['networthcertificate_document1'],
+     'networthcertificate_discrepancies1' => @$input['networthcertificate_discrepancies1'],
+     'networthcertificate_remark2' => @$input['networthcertificate_remark2'],
     //'networthcertificate_attachment1' => @$input['networthcertificate_attachment1'],
 
- 'cibilofpromoter_applicable1' => @$input['cibilofpromoter_applicable1'],
- 'cibilofpromoter_document1' => @$input['cibilofpromoter_document1'],
- 'cibilofpromoter_discrepancies1' => @$input['cibilofpromoter_discrepancies1'],
- 'cibilofpromoter_remark2' => @$input['cibilofpromoter_remark2'],
+     'cibilofpromoter_applicable1' => @$input['cibilofpromoter_applicable1'],
+     'cibilofpromoter_document1' => @$input['cibilofpromoter_document1'],
+     'cibilofpromoter_discrepancies1' => @$input['cibilofpromoter_discrepancies1'],
+     'cibilofpromoter_remark2' => @$input['cibilofpromoter_remark2'],
     //'cibilofpromoter_attachment1' => @$input['cibilofpromoter_attachment1'],
 
- 'other2_applicable1' => @$input['other2_applicable1'],
- 'other2_document1' => @$input['other2_document1'],
- 'other2_remarks' => @$input['other2_remarks'],
+     'other2_applicable1' => @$input['other2_applicable1'],
+     'other2_document1' => @$input['other2_document1'],
+     'other2_remarks' => @$input['other2_remarks'],
 
 
    //  //kyc of loan documents
 
- 'acceptedtermsheet_applicable1' => @$input['acceptedtermsheet_applicable1'],
- 'acceptedtermsheet_document1' => @$input['acceptedtermsheet_document1'],
- 'acceptedtermsheet_discrepancies1' => @$input['acceptedtermsheet_discrepancies1'],
- 'acceptedtermsheet_remark3' => @$input['acceptedtermsheet_remark3'],
+     'acceptedtermsheet_applicable1' => @$input['acceptedtermsheet_applicable1'],
+     'acceptedtermsheet_document1' => @$input['acceptedtermsheet_document1'],
+     'acceptedtermsheet_discrepancies1' => @$input['acceptedtermsheet_discrepancies1'],
+     'acceptedtermsheet_remark3' => @$input['acceptedtermsheet_remark3'],
 
- 'loanagreement_applicable1' => @$input['loanagreement_applicable1'],
- 'loanagreement_document1' => @$input['loanagreement_document1'],
- 'loanagreement_discrepancies1' => @$input['loanagreement_discrepancies1'],
- 'loanagreement_remark3' => @$input['loanagreement_remark3'],
+     'loanagreement_applicable1' => @$input['loanagreement_applicable1'],
+     'loanagreement_document1' => @$input['loanagreement_document1'],
+     'loanagreement_discrepancies1' => @$input['loanagreement_discrepancies1'],
+     'loanagreement_remark3' => @$input['loanagreement_remark3'],
 
- 'personalguarantee_applicable1' => @$input['personalguarantee_applicable1'],
- 'personalguarantee_document1' => @$input['personalguarantee_document1'],
- 'personalguarantee_discrepancies1' => @$input['personalguarantee_discrepancies1'],
- 'personalguarantee_remark3' => @$input['personalguarantee_remark3'],
+     'personalguarantee_applicable1' => @$input['personalguarantee_applicable1'],
+     'personalguarantee_document1' => @$input['personalguarantee_document1'],
+     'personalguarantee_discrepancies1' => @$input['personalguarantee_discrepancies1'],
+     'personalguarantee_remark3' => @$input['personalguarantee_remark3'],
 
- 'signatureverification_applicable1' => @$input['signatureverification_applicable1'],
- 'signatureverification_document1' => @$input['signatureverification_document1'],
- 'signatureverification_discrepancies1' => @$input['signatureverification_discrepancies1'],
- 'signatureverification_remark3' => @$input['signatureverification_remark3'],
+     'signatureverification_applicable1' => @$input['signatureverification_applicable1'],
+     'signatureverification_document1' => @$input['signatureverification_document1'],
+     'signatureverification_discrepancies1' => @$input['signatureverification_discrepancies1'],
+     'signatureverification_remark3' => @$input['signatureverification_remark3'],
 
- 'dpn_applicable1' => @$input['dpn_applicable1'],
- 'dpn_document1' => @$input['dpn_document1'],
- 'dpn_discrepancies1' => @$input['dpn_discrepancies1'],
- 'dpn_remark3' => @$input['dpn_remark3'],
+     'dpn_applicable1' => @$input['dpn_applicable1'],
+     'dpn_document1' => @$input['dpn_document1'],
+     'dpn_discrepancies1' => @$input['dpn_discrepancies1'],
+     'dpn_remark3' => @$input['dpn_remark3'],
 
- 'boardresolve_applicable1' => @$input['boardresolve_applicable1'],
- 'boardresolve_document1' => @$input['boardresolve_document1'],
- 'boardresolve_discrepancies1' => @$input['boardresolve_discrepancies1'],
- 'boardresolve_remark3' => @$input['boardresolve_remark3'],
+     'boardresolve_applicable1' => @$input['boardresolve_applicable1'],
+     'boardresolve_document1' => @$input['boardresolve_document1'],
+     'boardresolve_discrepancies1' => @$input['boardresolve_discrepancies1'],
+     'boardresolve_remark3' => @$input['boardresolve_remark3'],
     // 'boardresolve_attachment1' => @$input['boardresolve_attachment1'],
 
- 'other3_applicable1' => @$input['other3_applicable1'],
- 'other3_document1' => @$input['other3_document1'],
- 'other3_remarks' => @$input['other3_remarks'],
+     'other3_applicable1' => @$input['other3_applicable1'],
+     'other3_document1' => @$input['other3_document1'],
+     'other3_remarks' => @$input['other3_remarks'],
 
    //  //kyc of security start
 
- 'mortgagedocument_applicable1' => @$input['mortgagedocument_applicable1'],
- 'mortgagedocument_document1' => @$input['mortgagedocument_document1'],
- 'mortgagedocument_discrepancies1' => @$input['mortgagedocument_discrepancies1'],
- 'mortgagedocument_remark4' => @$input['mortgagedocument_remark4'],
+     'mortgagedocument_applicable1' => @$input['mortgagedocument_applicable1'],
+     'mortgagedocument_document1' => @$input['mortgagedocument_document1'],
+     'mortgagedocument_discrepancies1' => @$input['mortgagedocument_discrepancies1'],
+     'mortgagedocument_remark4' => @$input['mortgagedocument_remark4'],
 
- 'hypothicationagreement_applicable1' => @$input['hypothicationagreement_applicable1'],
- 'hypothicationagreement_document1' => @$input['hypothicationagreement_document1'],
- 'hypothicationagreement_discrepancies1' => @$input['hypothicationagreement_discrepancies1'],
- 'hypothicationagreement_remark4' => @$input['hypothicationagreement_remark4'],
+     'hypothicationagreement_applicable1' => @$input['hypothicationagreement_applicable1'],
+     'hypothicationagreement_document1' => @$input['hypothicationagreement_document1'],
+     'hypothicationagreement_discrepancies1' => @$input['hypothicationagreement_discrepancies1'],
+     'hypothicationagreement_remark4' => @$input['hypothicationagreement_remark4'],
 
- 'escrowagreement_applicable1' => @$input['escrowagreement_applicable1'],
- 'escrowagreement_document1' => @$input['escrowagreement_document1'],
- 'escrowagreement_discrepancies1' => @$input['escrowagreement_discrepancies1'],
- 'escrowagreement_remark4' => @$input['escrowagreement_remark4'],
+     'escrowagreement_applicable1' => @$input['escrowagreement_applicable1'],
+     'escrowagreement_document1' => @$input['escrowagreement_document1'],
+     'escrowagreement_discrepancies1' => @$input['escrowagreement_discrepancies1'],
+     'escrowagreement_remark4' => @$input['escrowagreement_remark4'],
 
- 'nachagreement_applicable1' => @$input['nachagreement_applicable1'],
- 'nachagreement_document1' => @$input['nachagreement_document1'],
- 'nachagreement_discrepancies1' => @$input['nachagreement_discrepancies1'],
- 'nachagreement_remark4' => @$input['nachagreement_remark4'],
+     'nachagreement_applicable1' => @$input['nachagreement_applicable1'],
+     'nachagreement_document1' => @$input['nachagreement_document1'],
+     'nachagreement_discrepancies1' => @$input['nachagreement_discrepancies1'],
+     'nachagreement_remark4' => @$input['nachagreement_remark4'],
 
- 'pdc_applicable1' => @$input['pdc_applicable1'],
- 'pdc_document1' => @$input['pdc_document1'],
- 'pdc_discrepancies1' => @$input['pdc_discrepancies1'],
- 'pdc_remark4' => @$input['pdc_remark4'],
+     'pdc_applicable1' => @$input['pdc_applicable1'],
+     'pdc_document1' => @$input['pdc_document1'],
+     'pdc_discrepancies1' => @$input['pdc_discrepancies1'],
+     'pdc_remark4' => @$input['pdc_remark4'],
 
- 'pdccoveringletter_applicable1' => @$input['pdccoveringletter_applicable1'],
- 'pdccoveringletter_document1' => @$input['pdccoveringletter_document1'],
- 'pdccoveringletter_discrepancies1' => @$input['pdccoveringletter_discrepancies1'],
- 'pdccoveringletter_remark4' => @$input['pdccoveringletter_remark4'],
-
-
- 'other4_applicable1' => @$input['other4_applicable1'],
- 'other4_document1' => @$input['other4_document1'],
- 'other4_remarks' => @$input['other4_remarks'],
+     'pdccoveringletter_applicable1' => @$input['pdccoveringletter_applicable1'],
+     'pdccoveringletter_document1' => @$input['pdccoveringletter_document1'],
+     'pdccoveringletter_discrepancies1' => @$input['pdccoveringletter_discrepancies1'],
+     'pdccoveringletter_remark4' => @$input['pdccoveringletter_remark4'],
 
 
-] );
+     'other4_applicable1' => @$input['other4_applicable1'],
+     'other4_document1' => @$input['other4_document1'],
+     'other4_remarks' => @$input['other4_remarks'],
+
+
+   ] );
 
   // $redirectUrl = $this->generateRedirectURL('loans/praposal/createchecklist', $endUseList, $loanType, $amount, $loanTenure, $companySharePledged, $bscNscCode, $loanId);
 
@@ -9110,33 +9116,44 @@ return Redirect::to($redirectUrl)->with('message', 'Checklist has beed successfu
 }
 
 
- public function getRepayment($param1 = null, $param2 = null, $param3 = null, $param4 = null, $param5 = null, $param6 = null, $param7 = null, $param8 = null)
-  {
-  
-    $endUseList = $param1;
-    $loanType = $param2;
-    $loanProduct = $param2;
-    $amount = $param3;
-    $loanTenure = $param4;
-    $companySharePledged = null;
-    $bscNscCode = null;
-    $afterShare = null;
-    if (isset($param5) && isset($param6) && isset($param8)) {
-      echo "string";
-      $loanId = $param8;
-      $afterShare = $param7;
-    } elseif (isset($param5) && isset($param6)) {
-      $companySharePledged = $param5;
-      $bscNscCode = $param6;
-      $loanId = $param7;
-    } else {
-      $loanId = $param5;
-    }
+public function getRepayment($param1 = null, $param2 = null, $param3 = null, $param4 = null, $param5 = null, $param6 = null, $param7 = null, $param8 = null)
+{
+
+  $endUseList = $param1;
+  $loanType = $param2;
+  $loanProduct = $param2;
+  $amount = $param3;
+  $loanTenure = $param4;
+  $companySharePledged = null;
+  $bscNscCode = null;
+  $afterShare = null;
+  if (isset($param5) && isset($param6) && isset($param8)) {
+    echo "string";
+    $loanId = $param8;
+    $afterShare = $param7;
+  } elseif (isset($param5) && isset($param6)) {
+    $companySharePledged = $param5;
+    $bscNscCode = $param6;
+    $loanId = $param7;
+  } else {
+    $loanId = $param5;
+  }
+
+  $userType = MasterData::userType();
+  $choosenUserType = null;
+  $loan_tenure = MasterData::tenureYearList();
+  $chosenLoanTenure = null;
+  $loan_product = MasterData::loanProductType();
+
+  $chosenLoanProduct = null;
+  $end_use = MasterData::endUseList();
+  $chosenEndUse = null;
+
 
   $loan = null;
   if (isset($loanId)) {
     $loan = Loan::find($loanId);
-  
+
     $securityDetail = $loan->getSecurityDetails()->get()->first();
     if ($companySharePledged == null) {
       if (@$securityDetail->is_any_other_security == 1) {
@@ -9157,9 +9174,9 @@ return Redirect::to($redirectUrl)->with('message', 'Checklist has beed successfu
     }
   }
 
-   $validLoanHelper = new validLoanUrlhelper();
+  $validLoanHelper = new validLoanUrlhelper();
 
-    if (isset($loanId)) {
+  if (isset($loanId)) {
     $validLoan = $validLoanHelper->isValidLoan($loanId);
     if (!$validLoan) {
       return view('loans.error');
@@ -9170,46 +9187,31 @@ return Redirect::to($redirectUrl)->with('message', 'Checklist has beed successfu
     }
   }
 
-  //new
-
-  $subViewType = 'loans._repayment';
-  $formaction = 'Loans\LoansController@postRepayment';
-
-  $bl_year = $this->setFinancialYears();
 
 
-  //new
-    $groupType = Config::get('constants.CONST_FIN_GROUP_TYPE_RATIO');
-    $financialGroups = FinancialGroup::with('financialEntries')->where('type', '=', $groupType)->where('status', '=', 1)->orderBy('sortOrder')->get();
-    $helper = new ExpressionHelper($loanId);
-    $financialDataExpressionsMap = $helper->calculateRatios();
-
-    
-    $financialDataMap = new Collection();
-    $showFormulaText = true;
-    $financialProfitLoss = ProfitLoss::where('loan_id', '=', $loanId)->get();
-    $ratios = Ratio::where('loan_id', '=', $loanId)->get();
 
 
-      
- 
-      $loan = Loan::find($loanId);
-      $loanUser = User::find($loan->user_id);
-      $loanUserProfile = $loanUser->userProfile();
 
-      $isReadOnly = Config::get('constants.CONST_IS_READ_ONLY');
 
-       $setDisable = '';
-       $isRemoveMandatory = MasterData::removeMandatory();
-       $isRemoveMandatory = array_except($isRemoveMandatory, ['']);
-       $removeMandatoryHelper = new validLoanUrlhelper();
 
-       $promoter_proof_address_file = null;
-       $model = null;
-        $mandatoryField = null;
-     $mandatoryField = 'M';
 
-         $user = Auth::getUser();
+  $loan = Loan::find($loanId);
+  $loanUser = User::find($loan->user_id);
+  $loanUserProfile = $loanUser->userProfile();
+
+  $isReadOnly = Config::get('constants.CONST_IS_READ_ONLY');
+
+  $setDisable = '';
+  $isRemoveMandatory = MasterData::removeMandatory();
+  $isRemoveMandatory = array_except($isRemoveMandatory, ['']);
+  $removeMandatoryHelper = new validLoanUrlhelper();
+
+  $promoter_proof_address_file = null;
+  $model = null;
+  $mandatoryField = null;
+  $mandatoryField = 'M';
+
+  $user = Auth::getUser();
   $setDisable = $this->getIsDisabled($user);
   if ($user->isAnalyst() && $setDisable == 'disabled') {
     $setDisable = null;
@@ -9219,7 +9221,7 @@ return Redirect::to($redirectUrl)->with('message', 'Checklist has beed successfu
   $isRemoveMandatory = array_except($isRemoveMandatory, ['']);
   $removeMandatoryHelper = new validLoanUrlhelper();
   $removeMandatory = $removeMandatoryHelper->getMandatory($user, $isRemoveMandatory);
-   
+
 
 
        ///end new
@@ -9237,7 +9239,7 @@ return Redirect::to($redirectUrl)->with('message', 'Checklist has beed successfu
 
 
   
- 
+
   //getting borrowers profile
   if (isset($loanId)) {
     $loan = Loan::find($loanId);
@@ -9245,15 +9247,27 @@ return Redirect::to($redirectUrl)->with('message', 'Checklist has beed successfu
     $loanUserProfile = $loanUser->userProfile();
 
     //new
-     @$praposalChecklist=LoanRepayments::where('loan_id', '=', $loanId)->first();
-        @$promoterDetails=PromoterDetails::where('loan_id', '=', $loanId)->first();
+    @$praposalChecklist=LoanRepayments::where('loan_id', '=', $loanId)->first();
+    @$promoterDetails=PromoterDetails::where('loan_id', '=', $loanId)->first();
   }
 
   $userPr = UserProfile::where('user_id', '=', $loan->user_id)->first();
   $userProfile = UserProfile::with('user')->find($userPr->id);
   //new
   $userProfileFirm = UserProfile::with('user')->find($userPr->id);
+  //new
 
+  $test = UserProfile::with('user')->find($userPr->id);
+
+  @$repaymentMaster=LoanRepayments::where('loan_id', '=', $loanId)->first();
+
+
+  @$repaymentDetails=LoanRepaymentsDetails::where('loan_id', '=', $loanId)->get();
+  
+
+
+  $subViewType = 'loans._repayment';
+  $formaction = 'Loans\LoansController@postRepayment';
   return view('loans.createedit', compact(
     'subViewType',
     'endUseList',
@@ -9267,13 +9281,16 @@ return Redirect::to($redirectUrl)->with('message', 'Checklist has beed successfu
     'companySharePledged',
     'validLoanHelper',
     'userProfileFirm',
-
+    'userPr',
     'promoter_proof_address_file',
     'removeMandatory',
     'model',
-     'mandatoryField',
-     'setDisable'
-    
+    'mandatoryField',
+    'setDisable',
+    'loan_product',
+    'chosenLoanProduct',
+    'repaymentMaster',
+    'repaymentDetails'
   ));
 }
 
@@ -9288,17 +9305,20 @@ return Redirect::to($redirectUrl)->with('message', 'Checklist has beed successfu
 
 
   public function postRepayment(Request $request)
-{
-  $input = Input::all();
-  $loanId = isset($input['loanId']) ? $input['loanId'] : null;
-  $loanType = isset($input['type']) ? $input['type'] : null;
-  $amount = isset($input['loan_amount']) ? $input['loan_amount'] : null;
-  $loanTenure = isset($input['loan_tenure']) ? $input['loan_tenure'] : null;
-  $endUseList = isset($input['end_use']) ? $input['end_use'] : null;
-  $companySharePledged = isset($input['companySharePledged']) ? $input['companySharePledged'] : null;
-  $bscNscCode = isset($input['bscNscCode']) ? $input['bscNscCode'] : null;
-  
-  $user = Auth::getUser();
+  {
+    $input = Input::all();
+
+
+
+
+    $loanId = isset($input['loanId']) ? $input['loanId'] : null;
+    $loanType = isset($input['type']) ? $input['type'] : null;
+    $amount = isset($input['loan_amount']) ? $input['loan_amount'] : null;
+    $loanTenure = isset($input['loan_tenure']) ? $input['loan_tenure'] : null;
+    $endUseList = isset($input['end_use']) ? $input['end_use'] : null;
+    $companySharePledged = isset($input['companySharePledged']) ? $input['companySharePledged'] : null;
+    $bscNscCode = isset($input['bscNscCode']) ? $input['bscNscCode'] : null;
+    $user = Auth::getUser();
     $user_id = $user->id; //Obtaining User id
     if (isset($loanId)) {
       $loan = Loan::find($loanId);
@@ -9309,349 +9329,109 @@ return Redirect::to($redirectUrl)->with('message', 'Checklist has beed successfu
     $fieldsArr = [];
     $rulesArr = [];
     $messagesArr = [];
-  
+    $loan = null;
+    if (isset($loanId)) {
+      $loan = Loan::find($loanId);
+    }
 
 
 
-$loan = null;
-if (isset($loanId)) {
-  $loan = Loan::find($loanId);
-}
+    $date = Carbon::now()->format('Y-m-d');
 
-$loansStatus = LoansStatus::updateOrCreate(['loan_id' => $loan->id], ['loan_id' => $loanId, 'loan_repayment' => 'Y']);
-// $loansStatus = Loan::updateOrCreate(['id' => $loanId], ['id' => $loanId, 'status' => '22']);
-$loansStatus->save();
-$this->getLoansStatus($loanId);
-$validator = Validator::make($fieldsArr, $rulesArr, $messagesArr);
-if ($validator->fails()) {
-  return Redirect::back()->withErrors($validator)->withInput();
-} else {
-  session()->flash('flash_message', 'Loan Repayment successfully uploaded!');
-}
-
- $loan = LoanRepayments::updateOrCreate(['loan_id' => $loanId], [
-
-   'cust_name' => @$input['cust_name'],
-   'guarantor_name' => @$input['guarantor_name'],
-   'cust_address' => @$input['cust_address'],
-   'guarantor_address' => @$input['guarantor_address'],
-   'cust_number' => @$input['cust_number'],
-   'guarantor_number' => @$input['guarantor_number'],
-   'email' => @$input['email'],
-   'email2' => @$input['email2'],
-   'TypeofLoan' => @$input['TypeofLoan'],
-   'TypeofRepayment' => @$input['TypeofRepayment'],
-   'p' => @$input['p'],
-   'r' => @$input['r'],
-   'n' => @$input['n'],
-   't' => @$input['t'],
-   'loansanction' => @$input['loansanction'],
-   'date1' => @$input['date1'],
-   'date2' => @$input['date2'],
-   'date3' => @$input['date3'],
-   'date4' => @$input['date4'],
-   'date5' => @$input['date5'],
-   'date6' => @$input['date6'],
-   'date7' => @$input['date7'],
-   'date8' => @$input['date8'],
-   'date9' => @$input['date9'],
-   'date10' => @$input['date10'],
-   'date11' => @$input['date11'],
-   'date12' => @$input['date12'],
-   'date13' => @$input['date13'],
-   'date14' => @$input['date14'],
-   'date15' => @$input['date15'],
-   'date16' => @$input['date16'],
-   'date17' => @$input['date17'],
-   'date18' => @$input['date18'],
-   'date19' => @$input['date19'],
-   'date20' => @$input['date20'],
-   'date21' => @$input['date21'],
-   'date22' => @$input['date22'],
-   'date23' => @$input['date23'],
-   'date24' => @$input['date24'],
-   'date25' => @$input['date25'],
-   'date26' => @$input['date26'],
-   'date27' => @$input['date27'],
-   'date28' => @$input['date28'],
-   'date29' => @$input['date29'],
-   'date30' => @$input['date30'],
-   'date31' => @$input['date31'],
-   'date32' => @$input['date32'],
-   'date33' => @$input['date33'],
-   'date34' => @$input['date34'],
-   'date35' => @$input['date35'],
-   'date36' => @$input['date36'],
-   'date37' => @$input['date37'],
-   'date38' => @$input['date38'],
-   'date39' => @$input['date39'],
-   'date40' => @$input['date40'],
-   'date41' => @$input['date41'],
-   'date42' => @$input['date42'],
-   'date43' => @$input['date43'],
-   'date44' => @$input['date44'],
-   'date45' => @$input['date45'],
-   'date46' => @$input['date46'],
-   'date47' => @$input['date47'],
-   'date48' => @$input['date48'],
+    @$repaymentMaster=LoanRepayments::where('loan_id', '=', $loanId)->first();
 
 
 
-   'first_date'=> @$input['first_date'],
-    'two_date'=> @$input['two_date'],
+      //Count(Date-loandis+1)
+    $dateEmiStart=Carbon::parse($repaymentMaster->emiStartDate);
+    $loanDisD=Carbon::parse($repaymentMaster->loanDisDate);
+    echo $noOfDays = $dateEmiStart->diffInDays($loanDisD)+1;
+    echo "<br>";
+    echo "Principle".$principal=$repaymentMaster->principal;
+    echo "<br>";
+    echo "interest".$interest=$repaymentMaster->interest;
+    echo "<br>";
+    echo "tds".$tds=$repaymentMaster->tds;
+    echo "<br>";
+    echo "Interest Due 1st row".$interestdue =($noOfDays * $principal * $interest)/36500 ; 
+    echo "<br>";
+    echo "TDS Due 1st row".$ftds =($tds * round($interestdue)) /100 ;
+    echo "<br>";
+    echo "Net Interest".$netInterest= $interestdue-$ftds;
+    echo "<br>"  ;
 
-    // 'os'=> @$input['os'],
-    'os1'=> @$input['os1'],
-    'os2'=> @$input['os2'],
-    'os3'=> @$input['os3'],
-    'os4'=> @$input['os4'],
-    'os5'=> @$input['os5'],
-    'os6'=> @$input['os6'],
-    'os7'=> @$input['os7'],
-    'os8'=> @$input['os8'],
-    'os9'=> @$input['os9'],
-    'os10'=> @$input['os10'],
-    'os11'=> @$input['os11'],
-    'os12'=> @$input['os12'],
-    'os13'=> @$input['os13'],
-    'os14'=> @$input['os14'],
-    'os15'=> @$input['os15'],
-    'os16'=> @$input['os16'],
-    'os17'=> @$input['os17'],
-    'os18'=> @$input['os18'],
-    'os19'=> @$input['os19'],
-    'os20'=> @$input['os20'],
-    'os21'=> @$input['os21'],
-    'os22'=> @$input['os22'],
-    'os23'=> @$input['os23'],
-    'os24'=> @$input['os24'],
-    'os25'=> @$input['os25'],
-    'os26'=> @$input['os26'],
-    'os27'=> @$input['os27'],
-    'os28'=> @$input['os28'],
-    'os29'=> @$input['os29'],
-    'os30'=> @$input['os30'],
-    'os31'=> @$input['os31'],
-    'os32'=> @$input['os32'],
-    'os33'=> @$input['os33'],
-    'os34'=> @$input['os34'],
-    'os35'=> @$input['os35'],
-    'os36'=> @$input['os36'],
-
-    // 'interestdue'=> @$input['interestdue'],
-    'interestdue1'=> @$input['interestdue1'],
-    'interestdue2'=> @$input['interestdue2'],
-    'interestdue3'=> @$input['interestdue3'],
-    'interestdue4'=> @$input['interestdue4'],
-    'interestdue5'=> @$input['interestdue5'],
-    'interestdue6'=> @$input['interestdue6'],
-    'interestdue7'=> @$input['interestdue7'],
-    'interestdue8'=> @$input['interestdue8'],
-    'interestdue9'=> @$input['interestdue9'],
-    'interestdue10'=> @$input['interestdue10'],
-    'interestdue11'=> @$input['interestdue11'],
-    'interestdue12'=> @$input['interestdue12'],
-    'interestdue13'=> @$input['interestdue13'],
-    'interestdue14'=> @$input['interestdue14'],
-    'interestdue15'=> @$input['interestdue15'],
-    'interestdue16'=> @$input['interestdue16'],
-    'interestdue17'=> @$input['interestdue17'],
-    'interestdue18'=> @$input['interestdue18'],
-    'interestdue19'=> @$input['interestdue19'],
-    'interestdue20'=> @$input['interestdue20'],
-    'interestdue21'=> @$input['interestdue21'],
-    'interestdue22'=> @$input['interestdue22'],
-    'interestdue23'=> @$input['interestdue23'],
-    'interestdue24'=> @$input['interestdue24'],
-    'interestdue25'=> @$input['interestdue25'],
-    'interestdue26'=> @$input['interestdue26'],
-    'interestdue27'=> @$input['interestdue27'],
-    'interestdue28'=> @$input['interestdue28'],
-    'interestdue29'=> @$input['interestdue29'],
-    'interestdue30'=> @$input['interestdue30'],
-    'interestdue31'=> @$input['interestdue31'],
-    'interestdue32'=> @$input['interestdue32'],
-    'interestdue33'=> @$input['interestdue33'],
-    'interestdue34'=> @$input['interestdue34'],
-    'interestdue35'=> @$input['interestdue35'],
-    'interestdue36'=> @$input['interestdue36'],
+    echo "Net Amount Due".$netAmountDue=$interestdue-0-$ftds;
+    echo "<br>";
+    echo "Total Due".$totalDue=$interestdue-0-$ftds;
+    echo "<br>"; 
+    echo "Arrears".$netAmountDue= $totalDue - $input['receipt'];
+    echo "<br>";
+echo $input['receipt'];
+    die();
+    if(!isset($repaymentMaster)){
+      DB::table('loan_repayment_master')->insert([
+        'loan_id' => '10350',
+        'TypeofLoan' => $input['TypeofLoan'],
+        'principal' => $input['principal'],
+        'interest' => $input['interest'],
+        'tenor' => $input['tenor'],
+        'loanDisDate' => $input['loanDisDate'],
+        'TypeofRepayment' => $input['TypeofRepayment'],
+        'emiStartDate' => $input['emiStartDate'],
+        'loan_amount' => $input['loan_amount'],
+        'moratorium' => $input['moratorium'],
+        'tds' => $input['tds'],
+        'penalRate' => $input['penalRate'],
+        'status' => "1"
+      ]);
+    }else{
 
 
-    // 'pd'=> @$input['pd'],
-    'pd1'=> @$input['pd1'],
-    'pd2'=> @$input['pd2'],
-    'pd3'=> @$input['pd3'],
-    'pd4'=> @$input['pd4'],
-    'pd5'=> @$input['pd5'],
-    'pd6'=> @$input['pd6'],
-    'pd7'=> @$input['pd7'],
-    'pd8'=> @$input['pd8'],
-    'pd9'=> @$input['pd9'],
-    'pd10'=> @$input['pd10'],
-    'pd11'=> @$input['pd11'],
-    'pd12'=> @$input['pd12'],
-    'pd13'=> @$input['pd13'],
-    'pd14'=> @$input['pd14'],
-    'pd15'=> @$input['pd15'],
-    'pd16'=> @$input['pd16'],
-    'pd17'=> @$input['pd17'],
-    'pd18'=> @$input['pd18'],
-    'pd19'=> @$input['pd19'],
-    'pd20'=> @$input['pd20'],
-    'pd21'=> @$input['pd21'],
-    'pd22'=> @$input['pd22'],
-    'pd23'=> @$input['pd23'],
-    'pd24'=> @$input['pd24'],
-    'pd25'=> @$input['pd25'],
-    'pd26'=> @$input['pd26'],
-    'pd27'=> @$input['pd27'],
-    'pd28'=> @$input['pd28'],
-    'pd29'=> @$input['pd29'],
-    'pd30'=> @$input['pd30'],
-    'pd31'=> @$input['pd31'],
-    'pd32'=> @$input['pd32'],
-    'pd33'=> @$input['pd33'],
-    'pd34'=> @$input['pd34'],
-    'pd35'=> @$input['pd35'],
-    'pd36'=> @$input['pd36'],
+    /*  $loan = LoanRepayments::updateOrCreate(['loan_id' => $loanId], [
+       'cust_name' => @$input['cust_name'],
+       'date' => @$input['date'],
+       'noOfDays' => @$input['noOfDays'],
+       'chequeNo' => @$input['chequeNo'],
+       'loanOutstanding' => @$input['loanOutstanding'],
+       'guarantor_number' => @$input['guarantor_number'],
+       'intersetDue' => @$input['intersetDue'],
+       'principalDue' => @$input['principalDue'],
+       'tds' => @$input['tds'],
+       'netInterest' => @$input['netInterest'],
+       'netAmountDue' => @$input['netAmountDue'],
+       'totalDue' => @$input['totalDue'],
+       'receipt' => @$input['receipt'],
+       'arrears' => @$input['arrears'],
+       'penalInterest' => @$input['penalInterest'],
+       'cumIntEarned' => @$input['cumIntEarned'],
+     ] );
+*/
+     echo "skip and post monthly data";
+
+   }
+   die();
+
+   $validator = Validator::make($fieldsArr, $rulesArr, $messagesArr);
+   if ($validator->fails()) {
+    return Redirect::back()->withErrors($validator)->withInput();
+  } else {
+    session()->flash('flash_message', 'Loan Repayment successfully uploaded!');
+  }
 
 
-    // 'tds'=> @$input['tds'],
-    'tds1'=> @$input['tds1'],
-    'tds2'=> @$input['tds2'],
-    'tds3'=> @$input['tds3'],
-    'tds4'=> @$input['tds4'],
-    'tds5'=> @$input['tds5'],
-    'tds6'=> @$input['tds6'],
-    'tds7'=> @$input['tds7'],
-    'tds8'=> @$input['tds8'],
-    'tds9'=> @$input['tds9'],
-    'tds10'=> @$input['tds10'],
-    'tds11'=> @$input['tds11'],
-    'tds12'=> @$input['tds12'],
-    'tds13'=> @$input['tds13'],
-    'tds14'=> @$input['tds14'],
-    'tds15'=> @$input['tds15'],
-    'tds16'=> @$input['tds16'],
-    'tds17'=> @$input['tds17'],
-    'tds18'=> @$input['tds18'],
-    'tds19'=> @$input['tds19'],
-    'tds20'=> @$input['tds20'],
-    'tds21'=> @$input['tds21'],
-    'tds22'=> @$input['tds22'],
-    'tds23'=> @$input['tds23'],
-    'tds24'=> @$input['tds24'],
-    'tds25'=> @$input['tds25'],
-    'tds26'=> @$input['tds26'],
-    'tds27'=> @$input['tds27'],
-    'tds28'=> @$input['tds28'],
-    'tds29'=> @$input['tds29'],
-    'tds30'=> @$input['tds30'],
-    'tds31'=> @$input['tds31'],
-    'tds32'=> @$input['tds32'],
-    'tds33'=> @$input['tds33'],
-    'tds34'=> @$input['tds34'],
-    'tds35'=> @$input['tds35'],
-    'tds36'=> @$input['tds36'],
 
+  $redirectUrl = 'home';
+  // return Redirect::to($redirectUrl);
+/*     $loansStatus = LoansStatus::updateOrCreate(['loan_id' => $loan->id], ['loan_id' => $loanId, 'loan_repayment' => 'Y']);
+     $loansStatus->save();
+     $this->getLoansStatus($loanId);*/
 
-    // 'netinterest'=> @$input['netinterest'],
-    'netinterest1'=> @$input['netinterest1'],
-    'netinterest2'=> @$input['netinterest2'],
-    'netinterest3'=> @$input['netinterest3'],
-    'netinterest4'=> @$input['netinterest4'],
-    'netinterest5'=> @$input['netinterest5'],
-    'netinterest6'=> @$input['netinterest6'],
-    'netinterest7'=> @$input['netinterest7'],
-    'netinterest8'=> @$input['netinterest8'],
-    'netinterest9'=> @$input['netinterest9'],
-    'netinterest10'=> @$input['netinterest10'],
-    'netinterest11'=> @$input['netinterest11'],
-    'netinterest12'=> @$input['netinterest12'],
-    'netinterest13'=> @$input['netinterest13'],
-    'netinterest14'=> @$input['netinterest14'],
-    'netinterest15'=> @$input['netinterest15'],
-    'netinterest16'=> @$input['netinterest16'],
-    'netinterest17'=> @$input['netinterest17'],
-    'netinterest18'=> @$input['netinterest18'],
-    'netinterest19'=> @$input['netinterest19'],
-    'netinterest20'=> @$input['netinterest20'],
-    'netinterest21'=> @$input['netinterest21'],
-    'netinterest22'=> @$input['netinterest22'],
-    'netinterest23'=> @$input['netinterest23'],
-    'netinterest24'=> @$input['netinterest24'],
-    'netinterest25'=> @$input['netinterest25'],
-    'netinterest26'=> @$input['netinterest26'],
-    'netinterest27'=> @$input['netinterest27'],
-    'netinterest28'=> @$input['netinterest28'],
-    'netinterest29'=> @$input['netinterest29'],
-    'netinterest30'=> @$input['netinterest30'],
-    'netinterest31'=> @$input['netinterest31'],
-    'netinterest32'=> @$input['netinterest32'],
-    'netinterest33'=> @$input['netinterest33'],
-    'netinterest34'=> @$input['netinterest34'],
-    'netinterest35'=> @$input['netinterest35'],
-    'netinterest36'=> @$input['netinterest36'],
-
-    
-    // 'netamtdue'=> @$input['netamtdue'],
-    'netamtdue1'=> @$input['netamtdue1'],
-    'netamtdue2'=> @$input['netamtdue2'],
-    'netamtdue3'=> @$input['netamtdue3'],
-    'netamtdue4'=> @$input['netamtdue4'],
-    'netamtdue5'=> @$input['netamtdue5'],
-    'netamtdue6'=> @$input['netamtdue6'],
-    'netamtdue7'=> @$input['netamtdue7'],
-    'netamtdue8'=> @$input['netamtdue8'],
-    'netamtdue9'=> @$input['netamtdue9'],
-    'netamtdue10'=> @$input['netamtdue10'],
-    'netamtdue11'=> @$input['netamtdue11'],
-    'netamtdue12'=> @$input['netamtdue12'],
-    'netamtdue13'=> @$input['netamtdue13'],
-    'netamtdue14'=> @$input['netamtdue14'],
-    'netamtdue15'=> @$input['netamtdue15'],
-    'netamtdue16'=> @$input['netamtdue16'],
-    'netamtdue17'=> @$input['netamtdue17'],
-    'netamtdue18'=> @$input['netamtdue18'],
-    'netamtdue19'=> @$input['netamtdue19'],
-    'netamtdue20'=> @$input['netamtdue20'],
-    'netamtdue21'=> @$input['netamtdue21'],
-    'netamtdue22'=> @$input['netamtdue22'],
-    'netamtdue23'=> @$input['netamtdue23'],
-    'netamtdue24'=> @$input['netamtdue24'],
-    'netamtdue25'=> @$input['netamtdue25'],
-    'netamtdue26'=> @$input['netamtdue26'],
-    'netamtdue27'=> @$input['netamtdue27'],
-    'netamtdue28'=> @$input['netamtdue28'],
-    'netamtdue29'=> @$input['netamtdue29'],
-    'netamtdue30'=> @$input['netamtdue30'],
-    'netamtdue31'=> @$input['netamtdue31'],
-    'netamtdue32'=> @$input['netamtdue32'],
-    'netamtdue33'=> @$input['netamtdue33'],
-    'netamtdue34'=> @$input['netamtdue34'],
-    'netamtdue35'=> @$input['netamtdue35'],
-    'netamtdue36'=> @$input['netamtdue36'],
+     return Redirect::to($redirectUrl)->with('message', 'Loan Repayment has beed successfully saved');
+   }
 
 
 
 
+ }
 
-
-
-    
- ] );
-
-
-
-$redirectUrl = 'home';
-// return Redirect::to($redirectUrl);
-
-
-
-return Redirect::to($redirectUrl)->with('message', 'Loan Repayment has beed successfully saved');
-}
-
-
-
-}
 

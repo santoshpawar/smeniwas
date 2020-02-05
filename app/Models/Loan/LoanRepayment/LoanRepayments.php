@@ -4,10 +4,10 @@ use Illuminate\Database\Eloquent\Model;
  
 class LoanRepayments extends Model
 {
-	 public $table = "Loan_repayment_Master";
+	public $table = "loan_repayment_Master";
 	protected $fillable=[
 	 'id', 
-   'loan_id', 
+   'loan_id',
    'TypeofLoan',
    'TypeofRepayment',
    'principal',
@@ -16,7 +16,11 @@ class LoanRepayments extends Model
    'tenor',
    'loanDisDate',
    'emiStartDate',
-   'moratorium'
+   'moratorium',
+    'tds',
+  'penalRate'
+ 
+
 	];
 	public function getLoan(){
 		return $this->belongsTo('App\Models\Loan\Loan','loan_id','id');
@@ -24,5 +28,8 @@ class LoanRepayments extends Model
 	}
 	public function getUser(){
 		return $this->belongsTo('App\Models\User','user_id','id');
+	}	
+	public function getRepaymentDetails(){
+		return $this->belongsTo('App\Models\LoanRepayment\LoanRepaymentsDetails','loan_id','loan_id');
 	}
 }

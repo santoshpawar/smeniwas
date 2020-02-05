@@ -318,12 +318,14 @@ $dimensionCounter = 1;
             $validLoanHelper = new App\Helpers\validLoanUrlhelper();
             $isCollateralVisible = $validLoanHelper->collateralModel($loanId);
             ?>
-            
-            @if(isset($isCollateralVisible) && $isCollateralVisible)
-            {!! Form::button('Save & Continue', ['class' => 'btn btn-success btn-cons sme_button', 'value'=> 'Save', 'type'=>'submit']) !!}
-            @if(isset($ratingModel))
+       
+              @if(isset($ratingModel))
              {!! Form::button('Reset', ['class' => 'btn btn-success btn-cons  pull-right','name'=>'resetProposal','value'=> 'resetProposal', 'type'=>'submit']) !!}
             @endif
+            @if(isset($isCollateralVisible) && $isCollateralVisible)
+             <p>isCollateralVisible</p>
+            {!! Form::button('Save & Continue', ['class' => 'btn btn-success btn-cons sme_button', 'value'=> 'Save', 'type'=>'submit']) !!}
+          
             @else
             {!! Form::button('Save', ['class' => 'btn btn-success btn-cons sme_button', 'name'=>'simpleSave', 'value'=> 'Save', 'type'=>'submit']) !!}
             {!! Form::button('Submit To Bank', ['class' => 'btn btn-success btn-cons sme_button','name'=>'submitToBank', 'value'=> 'Save', 'type'=>'submit']) !!}

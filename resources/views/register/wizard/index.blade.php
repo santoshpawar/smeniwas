@@ -2,12 +2,12 @@
 @extends('app_header')
 <style type="text/css">
   .header-fixed-top{
-        position: fixed;
+    position: fixed;
     right: 0;
     left: 0;
     z-index: 1030;
     background: #fff;
-        border-bottom: 5px solid #f3f3f3;
+    border-bottom: 5px solid #f3f3f3;
   }
   .phone_number {
     font-size: 20px;
@@ -18,10 +18,10 @@
     color: #2f5c99 !important;
     text-decoration: none;
     font-family: 'Tw Cen MT';
-}
-.card.reg {
+  }
+  .card.reg {
     margin-top: 50px;
-}
+  }
 </style>
 <header class="header-fixed-top">
   <div class="top-header">
@@ -35,7 +35,7 @@
         </div>
         <div class="col-md-9">
           <a href="/register/wizard/index" class="btn btn-warning btn-cons  pull-right" style="margin-left:10px;font-weight: bold;">Register New User</a>
-      
+
           <a href="/auth/login" class="btn btn-success btn-cons pull-right" style="margin-left:10px;font-weight: bold;">Login</a>
           <a href="mailto:contact@smeniwas.com" class="phone_number pull-right">contact@smeniwas.com</a>
           <a href="tel:+91-22-20852054" class="phone_number pull-right">Call us: +91-22-20852054</a>
@@ -44,7 +44,7 @@
     </div>
   </div>
   <div class="row"></div>
- 
+
 </header>
 @section('content')
 {{-- @if (count($errors) > 0)
@@ -62,11 +62,11 @@
   <div class="row">
     <div class="card reg" >
 
-  
+
       <div class="card-content">
 
         <div class="col-md-12">
-              @include('errors')
+          @include('errors')
           <div class="col-md-12 col-lg-12">
             <div class="container-fluid main-container" style="margin-bottom:15px;">
               <div class="col-md-12 col-lg-12">
@@ -212,6 +212,18 @@
                                         <div class="col-md-12">
                                           {!! Form::select('Nature_of_Business_Activity',$natureOfBusinessActivity,$chosenEntityActivity, ['id' => 'Nature_of_Business_Activity','class' => 'form-control', 'style' => ' width: 100%;']) !!}
                                         </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                      <div class="form-group required">
+
+                                        <div class="col-md-12">
+                                         <div class="checkbox">
+                                          <label style="font-size:14px;">
+                                            <input type="checkbox" name="consent" hidden=""> I Agree to all Terms and Condition including Consent for CIBIL check
+                                          </label>
+                                        </div>
+
                                       </div>
                                     </div>
                                   </div><br>

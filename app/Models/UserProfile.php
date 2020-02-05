@@ -24,7 +24,8 @@ class UserProfile extends Model
         'contact2',
         'latest_turnover',
         'owner_purpose_of_loan',
-        'required_amount'
+        'required_amount',
+        'consent'
     ];
 
     /**

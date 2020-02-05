@@ -52,7 +52,7 @@ Route::get('loans/praposal/application/{endUseList?}/{loanType?}/{amount?}/{loan
 Route::get('loans/praposal/uploaddoc/{endUseList?}/{loanType?}/{amount?}/{loanTenure?}/{companySharePledged?}/{bscNscCode?}/{loanId?}', 'Loans\LoansController@getPraposalUploaddoc');
 Route::get('loans/praposal/approver/{endUseList?}/{loanType?}/{amount?}/{loanTenure?}/{companySharePledged?}/{bscNscCode?}/{loanId?}', 'Loans\LoansController@getApprover');
 																																														
-Route::get('loans/praposal/repayment/{endUseList?}/{loanType?}/{amount?}/{loanTenure?}/{companySharePledged?}/{bscNscCode?}/{loanId?}', 'Loans\LoansRepaymentController@getRepayment');
+Route::get('loans/praposal/repayment/{endUseList?}/{loanType?}/{amount?}/{loanTenure?}/{companySharePledged?}/{bscNscCode?}/{loanId?}', 'Loans\LoansController@getRepayment');
 
 Route::get('loans/praposal/loancomment/{endUseList?}/{loanType?}/{amount?}/{loanTenure?}/{companySharePledged?}/{bscNscCode?}/{loanId?}', 'Loans\LoansController@getLoancomment');
 

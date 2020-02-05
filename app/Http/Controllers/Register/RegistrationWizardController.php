@@ -35,6 +35,7 @@ class RegistrationWizardController extends Controller
     'owner_state' => 'required',
     'pincode' => 'required|numeric',
     'contact1' => 'required|numeric',
+    'consent' => 'required',
     //        'contact2' => 'required|numeric',
     'latest_turnover' => 'required|numeric',
     'owner_purpose_of_loan' => 'required',
@@ -147,12 +148,14 @@ class RegistrationWizardController extends Controller
   public function postIndex(Request $request)
   {
     $input = Input::all();
-
+  
+ 
     $id = $input['id'];
     $data = null;
 
     $this->validate($request, $this->ownerPageValidationRules);
-    $credentials = ['username' => $input['firm_pan'], 'email' => $input['owner_email'], 'password' => password_hash($input['password'], PASSWORD_DEFAULT) ];
+  
+   $credentials = ['username' => $input['firm_pan'], 'email' => $input['owner_email'], 'password' => password_hash($input['password'], PASSWORD_DEFAULT) ];
     //            $user = Sentinel::registerAndActivate($credentials);
     $user = User::updateOrCreate(array('id' => $id), $credentials);
 
@@ -163,7 +166,7 @@ class RegistrationWizardController extends Controller
     $role = Roles::where('slug', '=', Config::get('constants.RL_SME'))->get()->first();
     $role->users()->attach($user);
     $user->push();
-    $santosh='santosh.pawar@smeniwas.com';
+    $santosh='amish@smeniwas.com';
     $this->sendMail('emails.saurabh', array('id' => $id,
       'user_id' => $input['user_id'],
       'name_of_firm' => $input['name_of_firm'],

@@ -215,8 +215,10 @@ class AnalystModelDimension extends Model {
        }
      }
 
-     if (Config::get('constants.CONST_RATIOS_TABLE')) {
+
+  /*   if (Config::get('constants.CONST_RATIOS_TABLE')) {
       $businessOld = Loan::where(['id' => $loan->id, 'com_co_business_old' =>  $loan->com_co_business_old])->get()->first();
+           echo $businessOld->com_co_business_old.'preselected';
       if(isset($businessOld->com_co_business_old)){
         if(strcmp($this->label, "No of years in business") == 0) {
           if($businessOld->com_co_business_old < '5') {
@@ -229,7 +231,7 @@ class AnalystModelDimension extends Model {
          }
        }
      }
-   }
+   }*/
 
    if (Config::get('constants.CONST_RATIOS_TABLE')) {
 
