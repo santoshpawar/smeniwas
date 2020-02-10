@@ -142,13 +142,13 @@ echo "</pre>"*/;
                   <div class="panel-body">
                     <div class="row" style="padding:5px;">
                       <div class="col-md-4" >
-                        {!! Form::label('loanamt','Loan Amount Sanctioned', ['class'=>'form-label']) !!}
+                        {!! Form::label('loanamt','Loan Amount Sanctioned ' , ['class'=>'form-label']) !!}<span>&nbsp;( <span class="fa fa-inr">&nbsp; </span>)</span>
                         {!! Form::label(null,null, ['style' => '  color: red;']) !!}
                         {!! Form::text('principal', isset($repaymentMaster->principal) ? @$repaymentMaster->principal : null, array('class' => 'form-control', 'id'=>'p', 'onchange' => 'computeLoan()' , 'min(1)' , 'max(10000000000)' )) !!} 
                         {{--  <p>Loan Amount: $<input id="p" type="number" min="1" max="1000000" onchange="computeLoan()"></p> --}}
                       </div>
                       <div class="col-md-4" >
-                       {!! Form::label('rateInterest','Interest Rate', ['class'=>'form-label']) !!}
+                       {!! Form::label('rateInterest','Interest Rate', ['class'=>'form-label']) !!} <span>&nbsp;( % p.a. )</span>
                        {!! Form::label(null,null, ['style' => '  color: red;']) !!}
                        {!! Form::text('interest',isset($repaymentMaster->interest) ? @$repaymentMaster->interest : null, array('class' => 'form-control', 'id'=>'r', 'min(0)' , 'max(100)' , 'value' => '1' , 'step' => '1', 'onchange' => 'computeLoan()' , 'placeholder' => '%' )) !!}
                        {{--  <p>Interest Rate: <input id="r" type="number" min="0" max="100" value="1" step="1" onchange="computeLoan()">%</p> --}}
@@ -160,13 +160,13 @@ echo "</pre>"*/;
                    <p>No of Days: <input id="n" type="number" min="1" max="30" value="1" step="1" onchange="computeLoan()"></p> 
                  </div> --}}
                  <div class="col-md-4" >
-                   {!! Form::label('tenor','Tenor', ['class'=>'form-label']) !!}
+                   {!! Form::label('tenor','Tenor', ['class'=>'form-label']) !!}<span>&nbsp;(Months)</span>
                    {!! Form::label(null,null, ['style' => '  color: red;']) !!}
                    {!! Form::text('tenor',isset($repaymentMaster->tenor) ? @$repaymentMaster->tenor : null, array('class' => 'form-control', 'id'=>'t', 'min(1)' , 'max(72)' , 'value' => '1' , 'step' => '1', 'onchange' => 'computeLoan()' , 'placeholder' => 'No. of Tenor' )) !!}
                    {{--     <p>Tenor: <input id="t" type="number" min="1" max="72" value="1" step="1" onchange="computeLoan()"></p> --}}
                  </div>
                  <div class="col-md-4" >
-                   {!! Form::label('Moratorium','Moratorium', ['class'=>'form-label']) !!}
+                   {!! Form::label('Moratorium','Moratorium', ['class'=>'form-label']) !!}<span>&nbsp;(Months)</span>
                    <br>
                    {!! Form::label(null,null, ['style' => '  color: red;']) !!}
                    {!! Form::text('moratorium',isset($repaymentMaster->moratorium) ? @$repaymentMaster->moratorium : null, array('class' => 'form-control', 'id'=>'moratorium','onchange' => 'computeLoan()')) !!}
@@ -184,17 +184,12 @@ echo "</pre>"*/;
                    {!! Form::text('emiStartDate',isset($repaymentMaster->emiStartDate) ? @$repaymentMaster->emiStartDate : null, array('class' => 'form-control', 'id'=>'emiStartDate', 'onchange' => 'computeLoan()')) !!}
                  </div> 
                  <div class="col-md-4" > {{-- If Disbmnt Date is less than 20th each month EMI Start date is same month of end date --}}
-                   {!! Form::label('Penal Rate','Penal Rate (%)', ['class'=>'form-label']) !!}
+                   {!! Form::label('Penal Rate','Penal Rate', ['class'=>'form-label']) !!}<span>&nbsp;( % p.a. )</span>
                    <br>
                    {!! Form::label(null,null, ['style' => '  color: red;']) !!}
                    {!! Form::text('penalRate',isset($repaymentMaster->penalRate) ? @$repaymentMaster->penalRate : null, array('class' => 'form-control', 'id'=>'emiStartDate', 'onchange' => 'computeLoan()')) !!}
                  </div>
-                 <div class="col-md-4" > {{-- If Disbmnt Date is less than 20th each month EMI Start date is same month of end date --}}
-                   {!! Form::label('TDS','TDS (%)', ['class'=>'form-label']) !!}
-                   <br>
-                   {!! Form::label(null,null, ['style' => '  color: red;']) !!}
-                   {!! Form::text('tds',isset($repaymentMaster->tds) ? @$repaymentMaster->tds : null, array('class' => 'form-control', 'id'=>'emiStartDate', 'onchange' => 'computeLoan()')) !!}
-                 </div> 
+
                  <div class="card">
                  </div>
                  @if(!isset($repaymentMaster))
@@ -219,13 +214,13 @@ echo "</pre>"*/;
             <div class="panel-heading">Add Monthly Entries</div>
             <div class="panel-body">
              <div class="row">
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <div class="form-group required">
                   {!! Form::label('dateEntries','Payment Date', ['class'=>'control-label']) !!}
                   {!! Form::text('date','', array('class' => 'form-control', 'id'=>'dateEntries', 'onchange' => '')) !!}
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <div class="form-group required">
                   {!! Form::label(null,'Cheque No/UTR No') !!}
                   {!! Form::label(null,$removeMandatory, ['style' => '  color: red;']) !!}
@@ -233,29 +228,36 @@ echo "</pre>"*/;
 
                 </div>
               </div>
-              <div class="col-md-4">
+            </div>
+            <div class="row">
+              <div class="col-md-6">
                 <div class="form-group required">
                   {!! Form::label(null,'Receipt / Amount') !!}
                   {!! Form::label(null,$removeMandatory, ['style' => '  color: red;']) !!}
                   {!! Form::text('receipt','', array('class' => 'form-control', 'id'=>'noOfDays', 'onchange' => '')) !!}
                 </div>
               </div>
+              <div class="col-md-6" > {{-- If Disbmnt Date is less than 20th each month EMI Start date is same month of end date --}}
+               {!! Form::label('TDS','TDS', ['class'=>'form-label']) !!}<span>&nbsp;( % )</span>
+               {!! Form::label(null,null, ['style' => '  color: red;']) !!}
+               {!! Form::text('tds',isset($repaymentMaster->tds) ? @$repaymentMaster->tds : null, array('class' => 'form-control', 'id'=>'emiStartDate', 'onchange' => 'computeLoan()')) !!}
+             </div> 
 
 
-              <div class="col-md-12" style="margin-left:20px;">
-                <div id="currentSection">
-                  <button type="submit" class="btn btn-alert btn-cons sme_button" value="Save" id="saveDetails" >Save Monthly Data</button>
+             <div class="col-md-12" style="margin-left:20px;">
+              <div id="currentSection">
+                <button type="submit" class="btn btn-alert btn-cons sme_button" value="Save" id="saveDetails" >Save Monthly Data</button>
 
-                </div>
               </div>
+            </div>
 
 
-            </div> 
-          </div>
+          </div> 
         </div>
       </div>
     </div>
-    <?php 
+  </div>
+  <?php 
 /*foreach ($repaymentDetails as $value) {
 echo "<pre>";
 print_r($value->date);
@@ -287,7 +289,7 @@ echo "</pre>";
       </tr>
     </thead>
     <tbody>
-     
+
       @foreach($repaymentDetails as $value)
       <tr>
         <td>  {{ $value->date }}        </td>

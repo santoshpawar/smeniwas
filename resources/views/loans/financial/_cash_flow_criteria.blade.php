@@ -115,7 +115,7 @@
             </td>
             <td>
               <div class="col-border col-md-12 col-sm-12 col-xs-12">
-               wqwqw{!! Form::text('calculatedScore1', isset($cashCriteria->calculatedScore1)? $cashCriteria->calculatedScore1 : null  , ['class'=>'form-control','id'=>'calculatedScore1','data-mandatory'=>'M' ,$setDisable] )!!}
+               {!! Form::text('calculatedScore1', isset($cashCriteria->calculatedScore1)? $cashCriteria->calculatedScore1 : null  , ['class'=>'form-control','id'=>'calculatedScore1','data-mandatory'=>'M' ,$setDisable] )!!}
              </div>
            </td>
            <td>  

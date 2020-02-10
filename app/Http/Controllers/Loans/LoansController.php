@@ -9333,41 +9333,33 @@ public function getRepayment($param1 = null, $param2 = null, $param3 = null, $pa
     if (isset($loanId)) {
       $loan = Loan::find($loanId);
     }
-
-
-
     $date = Carbon::now()->format('Y-m-d');
 
     @$repaymentMaster=LoanRepayments::where('loan_id', '=', $loanId)->first();
-
-
-
+    @$repaymentDetails=LoanRepaymentsDetails::where('loan_id', '=', $loanId)->get();
       //Count(Date-loandis+1)
     $dateEmiStart=Carbon::parse($repaymentMaster->emiStartDate);
     $loanDisD=Carbon::parse($repaymentMaster->loanDisDate);
-    echo $noOfDays = $dateEmiStart->diffInDays($loanDisD)+1;
-    echo "<br>";
-    echo "Principle".$principal=$repaymentMaster->principal;
-    echo "<br>";
-    echo "interest".$interest=$repaymentMaster->interest;
-    echo "<br>";
-    echo "tds".$tds=$repaymentMaster->tds;
-    echo "<br>";
-    echo "Interest Due 1st row".$interestdue =($noOfDays * $principal * $interest)/36500 ; 
-    echo "<br>";
-    echo "TDS Due 1st row".$ftds =($tds * round($interestdue)) /100 ;
-    echo "<br>";
-    echo "Net Interest".$netInterest= $interestdue-$ftds;
-    echo "<br>"  ;
 
-    echo "Net Amount Due".$netAmountDue=$interestdue-0-$ftds;
-    echo "<br>";
-    echo "Total Due".$totalDue=$interestdue-0-$ftds;
-    echo "<br>"; 
-    echo "Arrears".$netAmountDue= $totalDue - $input['receipt'];
-    echo "<br>";
-echo $input['receipt'];
-    die();
+    
+    $noOfDays = $dateEmiStart->diffInDays($loanDisD)+1;
+
+
+
+    $principal = $repaymentMaster->principal;
+    $interest = $repaymentMaster->interest;
+    $tds = $input['tds']; //TDS in %
+    $interestdue = ($noOfDays * $principal * $interest)/36500 ; 
+    $tdsAmt = ($input['tds'] * $interestdue) /100 ; //4340
+    $netInterest = $interestdue - $tdsAmt;
+    $netAmountDue = $interestdue - 0 - $tdsAmt;
+    $totalDue = $interestdue - 0 - $tdsAmt;
+    $arrears = $totalDue - $input['receipt'];
+    $penalInterest = 0;
+    $principleDue = 0;
+    $cumIntEarned = round($penalInterest) + round($interestdue);
+    $loanOutstanding = $input['principal'] - $principleDue - ( $input['receipt'] - $totalDue );
+    $ts=1;
     if(!isset($repaymentMaster)){
       DB::table('loan_repayment_master')->insert([
         'loan_id' => '10350',
@@ -9384,35 +9376,79 @@ echo $input['receipt'];
         'penalRate' => $input['penalRate'],
         'status' => "1"
       ]);
-    }else{
+    }else if(!isset($repaymentDetails)){
+echo "add first record";
+    /* $loan = LoanRepaymentsDetails::updateOrCreate(['loan_id' => $loanId], [
+       //$deatilsData =array (
 
-
-    /*  $loan = LoanRepayments::updateOrCreate(['loan_id' => $loanId], [
-       'cust_name' => @$input['cust_name'],
        'date' => @$input['date'],
-       'noOfDays' => @$input['noOfDays'],
+       'noOfDays' => @$noOfDays,
+       'month'=>'1',
        'chequeNo' => @$input['chequeNo'],
-       'loanOutstanding' => @$input['loanOutstanding'],
-       'guarantor_number' => @$input['guarantor_number'],
-       'intersetDue' => @$input['intersetDue'],
-       'principalDue' => @$input['principalDue'],
-       'tds' => @$input['tds'],
-       'netInterest' => @$input['netInterest'],
-       'netAmountDue' => @$input['netAmountDue'],
-       'totalDue' => @$input['totalDue'],
-       'receipt' => @$input['receipt'],
-       'arrears' => @$input['arrears'],
-       'penalInterest' => @$input['penalInterest'],
-       'cumIntEarned' => @$input['cumIntEarned'],
-     ] );
-*/
-     echo "skip and post monthly data";
+       'loanOutstanding' => round(@$loanOutstanding),
+       
+       'intersetDue' => round(@$interestdue),
+       'principalDue' => round(@$principleDue),
+       'tds' => round(@$tdsAmt),
+       'netInterest' => round(@$netInterest),
+       'netAmountDue' => round(@$netAmountDue),
+       'totalDue' => round(@$totalDue),
+       'receipt' => round(@$input['receipt']),
+       'arrears' => round(@$arrears),
+       'penalInterest' => round(@$penalInterest),
+       'cumIntEarned' => round(@$cumIntEarned)
+     ]);*/
+ 
 
-   }
-   die();
+   }else{
+    @$repaymentDetails=LoanRepaymentsDetails::where('loan_id', '=', $loanId)->orderBy('month', 'DESC')->first();
+    $first=Carbon::parse($input['date']);
+    $second=Carbon::parse($repaymentDetails->date);
+    $odays = $first->diffInDays($second);
 
-   $validator = Validator::make($fieldsArr, $rulesArr, $messagesArr);
-   if ($validator->fails()) {
+    $interestdue2 = ( $odays * $repaymentDetails->loanOutstanding * $interest )/36500 ; 
+    $tdsAmt2 = ( $input['tds'] * $interestdue2 ) / 100 ; 
+    $netInterest2 =  $interestdue2 - $tdsAmt2 ;  
+    $penalInterest2 =  ( $repaymentDetails->arrears * $repaymentMaster->penalRate * $odays ) / 36500 ; 
+    $netAmountDue2 =  ( $interestdue2 + $repaymentDetails->principalDue - $tdsAmt2 + $penalInterest2 + $repaymentDetails->arrears );
+    $totalDue2 =   $netAmountDue2 - $repaymentDetails->arrears; 
+    $arrears2 =   $totalDue2 - $input['receipt']; 
+    $cumIntEarned2 = round($penalInterest2) + round($interestdue2);
+    $loanOutstanding = $input['principal'] - $repaymentDetails->arrears - ( $input['receipt'] - $totalDue2 );
+     $second = LoanRepaymentsDetails::updateOrCreate(['loan_id' => $loanId], [
+       //$deatilsData =array (
+
+       'date' => @$input['date'],
+       'noOfDays' => @$noOfDays,
+       'month'=>$repaymentDetails->month+1,
+       'chequeNo' => @$input['chequeNo'],
+       'loanOutstanding' => round(@$loanOutstanding),
+       
+       'intersetDue' => round(@$interestdue),
+       'principalDue' => round(@$principleDue),
+       'tds' => round(@$tdsAmt),
+       'netInterest' => round(@$netInterest),
+       'netAmountDue' => round(@$netAmountDue),
+       'totalDue' => round(@$totalDue),
+       'receipt' => round(@$input['receipt']),
+       'arrears' => round(@$arrears),
+       'penalInterest' => round(@$penalInterest),
+       'cumIntEarned' => round(@$cumIntEarned)
+     ]);
+echo "<pre>";
+print_r($second);
+echo "</pre>";
+
+
+    /*
+    Penal Interest=(4000*24*30)/36500
+    */
+
+  }
+  die();
+
+  $validator = Validator::make($fieldsArr, $rulesArr, $messagesArr);
+  if ($validator->fails()) {
     return Redirect::back()->withErrors($validator)->withInput();
   } else {
     session()->flash('flash_message', 'Loan Repayment successfully uploaded!');

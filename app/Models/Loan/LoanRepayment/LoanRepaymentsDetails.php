@@ -4,10 +4,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class LoanRepaymentsDetails extends Model
 {
- public $table = "loans_repayment";
+ public $table = "loans_repayment_details";
  protected $fillable=[
  
   'loan_id' ,
+  'month',
   'date',
   'noOfDays',
   'chequeNo',
