@@ -1,5 +1,4 @@
-<p>asjhsajh</p>
-
+ 
 <style>
   .sharePop {
     background: #083b82;
@@ -189,6 +188,12 @@ echo "</pre>"*/;
                    {!! Form::label(null,null, ['style' => '  color: red;']) !!}
                    {!! Form::text('penalRate',isset($repaymentMaster->penalRate) ? @$repaymentMaster->penalRate : null, array('class' => 'form-control', 'id'=>'emiStartDate', 'onchange' => 'computeLoan()')) !!}
                  </div>
+                 <div class="col-md-4" > {{-- If Disbmnt Date is less than 20th each month EMI Start date is same month of end date --}}
+                   {!! Form::label('Loan Tranch Disbursed','Loan Tranch Disbursed', ['class'=>'form-label']) !!}( <span class="fa fa-inr">&nbsp; </span>)
+                   <br>
+                   {!! Form::label(null,null, ['style' => '  color: red;']) !!}
+                   {!! Form::text('loanTranchDibursed',isset($repaymentMaster->loanTranchDibursed) ? @$repaymentMaster->loanTranchDibursed : null, array('class' => 'form-control', 'id'=>'emiStartDate', 'onchange' => 'computeLoan()')) !!}
+                 </div>
 
                  <div class="card">
                  </div>
@@ -242,6 +247,12 @@ echo "</pre>"*/;
                {!! Form::label(null,null, ['style' => '  color: red;']) !!}
                {!! Form::text('tds',isset($repaymentMaster->tds) ? @$repaymentMaster->tds : null, array('class' => 'form-control', 'id'=>'emiStartDate', 'onchange' => 'computeLoan()')) !!}
              </div> 
+             <div class="col-md-4" > {{-- If Disbmnt Date is less than 20th each month EMI Start date is same month of end date --}}
+               {!! Form::label('Additional Amount Dibursed','Additional Amount Dibursed', ['class'=>'form-label']) !!}( <span class="fa fa-inr">&nbsp; </span>)
+               <br>
+               {!! Form::label(null,null, ['style' => '  color: red;']) !!}
+               {!! Form::text('additionalAmtDibursed',isset($repaymentMaster->additionalAmtDibursed) ? @$repaymentMaster->additionalAmtDibursed : null, array('class' => 'form-control', 'id'=>'emiStartDate', 'onchange' => 'computeLoan()')) !!}
+             </div>
 
 
              <div class="col-md-12" style="margin-left:20px;">
@@ -264,7 +275,7 @@ print_r($value->date);
 echo "</pre>";
 }
  */
-
+//$ttRecord =count($repaymentDetails);
 ?>
 <div class="row">
   <div class="col-md-12" style="margin-left:20px;">
@@ -286,6 +297,7 @@ echo "</pre>";
         <th>Arrears</th>                   
         <th>Penal Interest </th>                   
         <th>Cumulative Interest earned</th>                   
+        <th>Action</th>                   
       </tr>
     </thead>
     <tbody>
@@ -307,13 +319,22 @@ echo "</pre>";
         <td>  {{ $value->penalInterest }}        </td>
         <td>  {{ $value->cumIntEarned }}        </td>
 
+        <td> 
+          <?php 
+        
+        if($value->id == $santosh[0]->id){  ?>
+          <a onclick="return confirm('Are you sure you want to delete this item?');" href="{{URL::to('/loans/delete-mappings/' .   $value->id     )}}">Delete</a>
+         <?php }
+        ?>
+       
+       </td>              
 
-      </tr>
-      
-      @endforeach
+     </tr>
 
-    </tbody>
-  </table>
+     @endforeach
+
+   </tbody>
+ </table>
 </body>
 </div>
 </div>
@@ -487,6 +508,17 @@ days = document.getElementById("days");
 days.innerHTML =millisBetween / millisecondsPerDay;
 days2 = document.getElementById("days2");
 days2.innerHTML = millisBetween2 / millisecondsPerDay;*/
-}
-</script>
---}}
+
+
+function deleteRecords(th, type) {
+  if (type === undefined) type = 'record';
+  doDelete = confirm("Are you sure you want to delete the selected " + type + "s ?");
+  if (!doDelete) {
+                // If cancel is selected, do nothing
+                return false;
+              }
+            }
+          }
+
+
+        </script>

@@ -22,7 +22,8 @@ class LoanRepaymentsDetails extends Model
   'receipt',
   'arrears',
   'penalInterest',
-  'cumIntEarned'
+  'cumIntEarned',
+  'additionalAmtDibursed'
 
 ];
 public function getLoan(){
