@@ -45,7 +45,7 @@
                 <th>Download PDF</th>
                 <th>Status</th>
                 <th>CheckList</th>
-                <th>Repayment Schedule</t
+                <th>Repayment Schedule</th>
               </tr>
             </thead>
             <tbody>
@@ -108,7 +108,8 @@
                 </td>
                 
                 <td>
-                  <a href="{{URL::to('loans/praposal/repayment/'. $loan->type. '/' .$loan->end_use. '/' .$loan->loan_amount. '/' .$loan->loan_tenure. '/'. $loan->id)}}">Loan Repayment</a>
+                {{--   <a href="{{URL::to('loans/praposal/repayment/'. $loan->type. '/' .$loan->end_use. '/' .$loan->loan_amount. '/' .$loan->loan_tenure. '/'. $loan->id)}}">Loan Repayment</a> --}}
+                  <a href="{{URL::to('loans/praposal/repaymentDashboard/'. $loan->type. '/' .$loan->end_use. '/' .$loan->loan_amount. '/' .$loan->loan_tenure. '/'. $loan->id)}}">Loan Repayment Details</a>
                 </td>
               
               </tr>

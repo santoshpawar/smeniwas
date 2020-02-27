@@ -12,6 +12,7 @@ class LoanRepaymentsDetails extends Model
   'date',
   'noOfDays',
   'chequeNo',
+  'cumulativeDisbursement',
   'loanOutstanding',
   'intersetDue',
   'principalDue',

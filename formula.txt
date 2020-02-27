@@ -79,8 +79,8 @@ V12=Receivables > 180 days from related party...35..OK
 Additional Amt Disbursed (rs):= 
 ===========================================================================
 
-1. Edit
-2. diff value Error
-3. 3 working sample data 
-4. trnch wise
+1. Delete: Done
+2. diff value Error:Chk
+3. 3 working sample data : Done
+4. trnch wise....
 5. 

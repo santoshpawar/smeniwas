@@ -247,12 +247,18 @@ echo "</pre>"*/;
                {!! Form::label(null,null, ['style' => '  color: red;']) !!}
                {!! Form::text('tds',isset($repaymentMaster->tds) ? @$repaymentMaster->tds : null, array('class' => 'form-control', 'id'=>'emiStartDate', 'onchange' => 'computeLoan()')) !!}
              </div> 
+
+             @if( $repaymentMaster->moratorium > count($repaymentDetails ) )
              <div class="col-md-4" > {{-- If Disbmnt Date is less than 20th each month EMI Start date is same month of end date --}}
                {!! Form::label('Additional Amount Dibursed','Additional Amount Dibursed', ['class'=>'form-label']) !!}( <span class="fa fa-inr">&nbsp; </span>)
                <br>
                {!! Form::label(null,null, ['style' => '  color: red;']) !!}
                {!! Form::text('additionalAmtDibursed',isset($repaymentMaster->additionalAmtDibursed) ? @$repaymentMaster->additionalAmtDibursed : null, array('class' => 'form-control', 'id'=>'emiStartDate', 'onchange' => 'computeLoan()')) !!}
              </div>
+
+
+             @endif      
+
 
 
              <div class="col-md-12" style="margin-left:20px;">
@@ -286,6 +292,7 @@ echo "</pre>";
         <th>Date</th>
         <th>Nos of days</th>
         <th>Cheque No/UTR No</th>
+        <th>Cumulative Disbursement</th>
         <th>Loan Outstanding</th>
         <th>Interest Due</th>
         <th>Principal Due</th>
@@ -307,34 +314,39 @@ echo "</pre>";
         <td>  {{ $value->date }}        </td>
         <td>  {{ $value->noOfDays }}        </td>
         <td>  {{ $value->chequeNo }}        </td>
-        <td>  {{ $value->loanOutstanding }}        </td>
-        <td>  {{ $value->intersetDue }}        </td>
-        <td>  {{ $value->principalDue }}        </td>
-        <td>  {{ $value->tds }}        </td>
-        <td>  {{ $value->netInterest }}        </td>
-        <td>  {{ $value->netAmountDue }}        </td>
-        <td>  {{ $value->totalDue }}        </td>
-        <td>  {{ $value->receipt }}        </td>
-        <td>  {{ $value->arrears }}        </td>
-        <td>  {{ $value->penalInterest }}        </td>
-        <td>  {{ $value->cumIntEarned }}        </td>
+        <td>  @if ( count($repaymentDetails) > $value->month )
+         {{ $value->cumulativeDisbursement }}
+         @else
+         <span>Disabled</span>
+       @endif            </td>
+       <td>  {{ $value->loanOutstanding }}        </td>
+       <td>  {{ $value->intersetDue }}        </td>
+       <td>  {{ $value->principalDue }}        </td>
+       <td>  {{ $value->tds }}        </td>
+       <td>  {{ $value->netInterest }}        </td>
+       <td>  {{ $value->netAmountDue }}        </td>
+       <td>  {{ $value->totalDue }}        </td>
+       <td>  {{ $value->receipt }}        </td>
+       <td>  {{ $value->arrears }}        </td>
+       <td>  {{ $value->penalInterest }}        </td>
+       <td>  {{ $value->cumIntEarned }}        </td>
 
-        <td> 
-          <?php 
+       <td> 
+        <?php 
         
         if($value->id == $santosh[0]->id){  ?>
-          <a onclick="return confirm('Are you sure you want to delete this item?');" href="{{URL::to('/loans/delete-mappings/' .   $value->id     )}}">Delete</a>
-         <?php }
-        ?>
-       
-       </td>              
+        <a onclick="return confirm('Are you sure you want to delete this item?');" href="{{URL::to('/loans/delete-mappings/' .   $value->id     )}}">Delete</a>
+      <?php }
+      ?>
 
-     </tr>
+    </td>              
 
-     @endforeach
+  </tr>
 
-   </tbody>
- </table>
+  @endforeach
+
+</tbody>
+</table>
 </body>
 </div>
 </div>

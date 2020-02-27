@@ -87,7 +87,7 @@ use App\Models\Loan\LoansStatus;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
 
- 
+
 
 use Storage;
 use Auth;
@@ -9114,6 +9114,176 @@ $redirectUrl = 'home';
 return Redirect::to($redirectUrl)->with('message', 'Checklist has beed successfully saved');
 }
 
+public function getRepaymentDashboard($param1 = null, $param2 = null, $param3 = null, $param4 = null, $param5 = null, $param6 = null, $param7 = null, $param8 = null)
+{
+
+  $endUseList = $param1;
+  $loanType = $param2;
+  $loanProduct = $param2;
+  $amount = $param3;
+  $loanTenure = $param4;
+  $companySharePledged = null;
+  $bscNscCode = null;
+  $afterShare = null;
+  if (isset($param5) && isset($param6) && isset($param8)) {
+    echo "string";
+    $loanId = $param8;
+    $afterShare = $param7;
+  } elseif (isset($param5) && isset($param6)) {
+    $companySharePledged = $param5;
+    $bscNscCode = $param6;
+    $loanId = $param7;
+  } else {
+    $loanId = $param5;
+  }
+
+  $userType = MasterData::userType();
+  $choosenUserType = null;
+  $loan_tenure = MasterData::tenureYearList();
+  $chosenLoanTenure = null;
+  $loan_product = MasterData::loanProductType();
+
+  $chosenLoanProduct = null;
+  $end_use = MasterData::endUseList();
+  $chosenEndUse = null;
+
+
+  $loan = null;
+  if (isset($loanId)) {
+    $loan = Loan::find($loanId);
+
+    $securityDetail = $loan->getSecurityDetails()->get()->first();
+    if ($companySharePledged == null) {
+      if (@$securityDetail->is_any_other_security == 1) {
+        $displayNoneSecurity = $securityDetail->is_any_other_security;
+      }
+    }
+    if (!isset($endUseList)) {
+      $endUseList = $loan->end_use;
+    }
+    if (!isset($loanType)) {
+      $loanType = $loan->type;
+    }
+    if (!isset($amount)) {
+      $amount = $loan->loan_amount;
+    }
+    if (!isset($loanTenure)) {
+      $loanTenure = $loan->loan_tenure;
+    }
+  }
+
+  $validLoanHelper = new validLoanUrlhelper();
+
+  if (isset($loanId)) {
+    $validLoan = $validLoanHelper->isValidLoan($loanId);
+    if (!$validLoan) {
+      return view('loans.error');
+    }
+    $status = $validLoanHelper->getTabStatus($loanId, 'promoter_details');
+    if ($status == 'Y' && $setDisable != 'disabled') {
+      $setDisable = 'disabled';
+    }
+  }
+
+  $loan = Loan::find($loanId);
+  $loanUser = User::find($loan->user_id);
+ // $loanUserProfile = $loanUser->userProfile();
+
+  $isReadOnly = Config::get('constants.CONST_IS_READ_ONLY');
+
+  $setDisable = '';
+  $isRemoveMandatory = MasterData::removeMandatory();
+  $isRemoveMandatory = array_except($isRemoveMandatory, ['']);
+  $removeMandatoryHelper = new validLoanUrlhelper();
+
+  $promoter_proof_address_file = null;
+  $model = null;
+  $mandatoryField = null;
+  $mandatoryField = 'M';
+
+  $user = Auth::getUser();
+  $setDisable = $this->getIsDisabled($user);
+  if ($user->isAnalyst() && $setDisable == 'disabled') {
+    $setDisable = null;
+    $mandatoryField = null;
+  }
+  $isRemoveMandatory = MasterData::removeMandatory();
+  $isRemoveMandatory = array_except($isRemoveMandatory, ['']);
+  $removeMandatoryHelper = new validLoanUrlhelper();
+  $removeMandatory = $removeMandatoryHelper->getMandatory($user, $isRemoveMandatory);
+
+
+
+       ///end new
+  
+  $addressTypes = MasterData::addressProofTypes();
+  $mandatoryField = 'M';
+  $setDisable = null;
+  $isAnalystUser = null;
+  $user = Auth::getUser();
+  $setDisable = $this->getIsDisabled($user);
+  if ($user->isAnalyst() && $setDisable == 'disabled') {
+    $setDisable = null;
+    $mandatoryField = null;
+  }
+
+  //getting borrowers profile
+  if (isset($loanId)) {
+    $loan = Loan::find($loanId);
+    $loanUser = User::find($loan->user_id);
+
+    @$praposalChecklist=LoanRepayments::where('loan_id', '=', $loanId)->first();
+    @$promoterDetails=PromoterDetails::where('loan_id', '=', $loanId)->first();
+  }
+
+
+// echo $id."Last id";
+  $userPr = UserProfile::where('user_id', '=', $loan->user_id)->first();
+  $userProfile = UserProfile::with('user')->find($userPr->id);
+  //new
+  $userProfileFirm = UserProfile::with('user')->find($userPr->id);
+  //new
+
+  $test = UserProfile::with('user')->find($userPr->id);
+
+ 
+   //$id = DB::table('loans_repayment_details')->latest('upload_time')->first();
+  // $santosh=LoanRepaymentsDetails::orderBy('loan_id', 'desc')->first();
+ /*  SELECT id FROM `loans_repayment_details` WHERE loan_id='10350' ORDER BY `id` DESC     */
+ 
+                   // ;
+//echo $santosh."santosh";
+ //echo $santosh->id;
+
+ $subViewType = 'loans._repaymentDashboard';
+ $formaction = 'Loans\LoansController@postRepayment';
+ return view('loans.createedit', compact(
+  'subViewType',
+  'endUseList',
+  'loanType',
+  'amount',
+  'loanTenure',
+  'loan',
+  'loanId',
+  'formaction',
+  'praposalChecklist',
+  'companySharePledged',
+  'validLoanHelper',
+  'userProfileFirm',
+  'userPr',
+  'promoter_proof_address_file',
+  'removeMandatory',
+  'model',
+  'mandatoryField',
+  'setDisable',
+  'loan_product',
+  'chosenLoanProduct',
+  'repaymentMaster',
+  'repaymentDetails',
+  'santosh'
+));
+}
+
 
 public function getRepayment($param1 = null, $param2 = null, $param3 = null, $param4 = null, $param5 = null, $param6 = null, $param7 = null, $param8 = null)
 {
@@ -9243,11 +9413,11 @@ public function getRepayment($param1 = null, $param2 = null, $param3 = null, $pa
   if (isset($loanId)) {
     $loan = Loan::find($loanId);
     $loanUser = User::find($loan->user_id);
-     
+
     @$praposalChecklist=LoanRepayments::where('loan_id', '=', $loanId)->first();
     @$promoterDetails=PromoterDetails::where('loan_id', '=', $loanId)->first();
   }
- 
+
 
 // echo $id."Last id";
   $userPr = UserProfile::where('user_id', '=', $loan->user_id)->first();
@@ -9259,46 +9429,60 @@ public function getRepayment($param1 = null, $param2 = null, $param3 = null, $pa
   $test = UserProfile::with('user')->find($userPr->id);
 
   @$repaymentMaster=LoanRepayments::where('loan_id', '=', $loanId)->first();
-   
+
 
   @$repaymentDetails=LoanRepaymentsDetails::where('loan_id', '=', $loanId)->get();
+  echo $repaymentMaster->moratorium;
+  echo count($repaymentDetails);
+ //die();
+  if(count($repaymentDetails) > 0 ){
+    if(isset($repaymentDetails)){
+      if( $repaymentMaster->moratorium < @$repaymentDetails->month){
+       echo "enable";
+
+     }else{
+       $setDisable = 'disabled';
+
+     }
+   }
+ }
    //$id = DB::table('loans_repayment_details')->latest('upload_time')->first();
   // $santosh=LoanRepaymentsDetails::orderBy('loan_id', 'desc')->first();
-/*  SELECT id FROM `loans_repayment_details` WHERE loan_id='10350' ORDER BY `id` DESC     */
-   @$santosh = DB::table('loans_repayment_details')
-                    ->where('loan_id', $loanId)->orderBy('id','desc')->get();
+ /*  SELECT id FROM `loans_repayment_details` WHERE loan_id='10350' ORDER BY `id` DESC     */
+ @$santosh = DB::table('loans_repayment_details')
+ ->where('loan_id', $loanId)->orderBy('id','desc')->get();
  
                    // ;
 //echo $santosh."santosh";
  //echo $santosh->id;
 
-  $subViewType = 'loans._repayment';
-  $formaction = 'Loans\LoansController@postRepayment';
-  return view('loans.createedit', compact(
-    'subViewType',
-    'endUseList',
-    'loanType',
-    'amount',
-    'loanTenure',
-    'loan',
-    'loanId',
-    'formaction',
-    'praposalChecklist',
-    'companySharePledged',
-    'validLoanHelper',
-    'userProfileFirm',
-    'userPr',
-    'promoter_proof_address_file',
-    'removeMandatory',
-    'model',
-    'mandatoryField',
-    'setDisable',
-    'loan_product',
-    'chosenLoanProduct',
-    'repaymentMaster',
-    'repaymentDetails',
-    'santosh'
-  ));
+ $subViewType = 'loans._repayment';
+ $formaction = 'Loans\LoansController@postRepayment';
+ return view('loans.createedit', compact(
+  'subViewType',
+  'endUseList',
+  'loanType',
+  'amount',
+  'loanTenure',
+  'loan',
+  'loanId',
+  'formaction',
+  'praposalChecklist',
+  'companySharePledged',
+  'validLoanHelper',
+  'userProfileFirm',
+  'userPr',
+  'promoter_proof_address_file',
+  'removeMandatory',
+  'model',
+  'mandatoryField',
+  'setDisable',
+  'loan_product',
+  'chosenLoanProduct',
+  'repaymentMaster',
+  'repaymentDetails',
+  'santosh'
+));
 }
 
 
@@ -9367,164 +9551,164 @@ public function getRepayment($param1 = null, $param2 = null, $param3 = null, $pa
     @$tdsAmt = ($input['tds'] * $interestdue) /100 ; //4340
     @$netInterest = $interestdue - $tdsAmt;
     if($input['moratorium']=="0"){
-       $principleDue = $input['principal'] / ( $input['tenor'] - $input['moratorium'] );
-    }else{
-      $principleDue=0;
-    }
-    $netAmountDue = $interestdue + $principleDue - $tdsAmt;
-    $totalDue =$netAmountDue;
-     @$arrears = $totalDue - $input['receipt'];
-    $penalInterest = 0;
-     //die();
-  /*  if($repaymentMaster->moratorium > 1){
+     $principleDue = $input['principal'] / ( $input['tenor'] - $input['moratorium'] );
+   }else{
+    $principleDue=0;
+  }
+  $netAmountDue = $interestdue + $principleDue - $tdsAmt;
+  $totalDue =$netAmountDue;
+  @$arrears = $totalDue - $input['receipt'];
+  $penalInterest = 0;
+  @$cumIntEarned = round($penalInterest) + round($interestdue);
 
-    }else{
+  /*Old Formula*/
+      //@$loanOutstanding = $input['loanTranchDibursed'] - $principleDue - ( $input['receipt'] - $totalDue ) ;
+  /*New Formula only for first  laon outstanding */
 
-    }*/
-    @$cumIntEarned = round($penalInterest) + round($interestdue);
-      /*while ($repaymentMaster->moratorium <= 10) {
-        # code...
-      }*/
-      @$loanOutstanding = $input['loanTranchDibursed'] - $principleDue - ( $input['receipt'] - $totalDue ) ;
-      $ts=1;
-      if(!isset($repaymentMaster)){
-        DB::table('loan_repayment_master')->insert([
-          'loan_id' => $loanId ,
-          'TypeofLoan' => $input['TypeofLoan'],
-          'principal' => $input['principal'],
-          'interest' => $input['interest'],
-          'tenor' => $input['tenor'],
-          'loanDisDate' => $input['loanDisDate'],
-          'TypeofRepayment' => $input['TypeofRepayment'],
-          'emiStartDate' => $input['emiStartDate'],
-          'loan_amount' => $input['loan_amount'],
-          'moratorium' => $input['moratorium'],
-          'tds' => $input['tds'],
-          'penalRate' => $input['penalRate'],
-          'loanTranchDibursed' => $input['loanTranchDibursed'],
-          'status' => "1"
-        ]);
+  @$loanOutstanding = $input['loanTranchDibursed'] + round($netInterest,2) + round($penalInterest,2) +  - @$input['receipt'] ;
 
- 
-      }else if($repaymentDetailsFirstRecord==""){
-        echo "add first record";
 
-        $loan = LoanRepaymentsDetails::updateOrCreate(['loan_id' => $loanId], [
+  /*$first[]=[
+    'loanTranchDibursed'=>$input['loanTranchDibursed'],
+    'netinterest'=>$netInterest,
+    'penalInterest'=>$penalInterest,
+    'totalDue'=>$totalDue,
+    'receipt'=> @$input['receipt'] 
+
+  ];
+echo "<pre>";
+print_r($first);
+echo "</pre>";
+die();*/
+@$cumulativeDisbursement=$input['loanTranchDibursed'];
+
+ // die();
+$ts=1;
+if(!isset($repaymentMaster)){
+  DB::table('loan_repayment_master')->insert([
+    'loan_id' => $loanId ,
+    'TypeofLoan' => $input['TypeofLoan'],
+    'principal' => $input['principal'],
+    'interest' => $input['interest'],
+    'tenor' => $input['tenor'],
+    'loanDisDate' => $input['loanDisDate'],
+    'TypeofRepayment' => $input['TypeofRepayment'],
+    'emiStartDate' => $input['emiStartDate'],
+    'loan_amount' => $input['loan_amount'],
+    'moratorium' => $input['moratorium'],
+    'tds' => $input['tds'],
+    'penalRate' => $input['penalRate'],
+    'loanTranchDibursed' => $input['loanTranchDibursed'],
+    'status' => "1"
+  ]);
+
+
+}else if($repaymentDetailsFirstRecord==""){
+  echo "add first record";
+
+  $loan = LoanRepaymentsDetails::updateOrCreate(['loan_id' => $loanId], [
        //$deatilsData =array (
 
-         'date' => @$input['date'],
-         'noOfDays' => @$noOfDays,
-         'month'=>'1',
-         'chequeNo' => @$input['chequeNo'],
-         'loanOutstanding' => round(@$loanOutstanding),
-         'intersetDue' => round(@$interestdue),
-         'principalDue' => round(@$principleDue),
-         'tds' => round(@$tdsAmt),
-         'netInterest' => round(@$netInterest),
-         'netAmountDue' => round(@$netAmountDue),
-         'totalDue' => round(@$totalDue),
-         'receipt' => round(@$input['receipt']),
-         'arrears' => round(@$arrears,2),
-         'penalInterest' => round(@$penalInterest),
-         'cumIntEarned' => round(@$cumIntEarned)
-       ]);
+   'date' => @$input['date'],
+   'noOfDays' => @$noOfDays,
+   'month'=>'1',
+   'chequeNo' => @$input['chequeNo'],
+   'cumulativeDisbursement' => @$cumulativeDisbursement,
+   'loanOutstanding' => round(@$loanOutstanding),
+   'intersetDue' => round(@$interestdue),
+   'principalDue' => round(@$principleDue),
+   'tds' => round(@$tdsAmt),
+   'netInterest' => round(@$netInterest),
+   'netAmountDue' => round(@$netAmountDue),
+   'totalDue' => round(@$totalDue),
+   'receipt' => round(@$input['receipt']),
+   'arrears' => round(@$arrears,2),
+   'penalInterest' => round(@$penalInterest),
+   'cumIntEarned' => round(@$cumIntEarned)
+ ]);
 
-        
-      }else{
+
+}else{
+
        // echo "Add second and next record in loop";
 
-        @$repaymentDetails=LoanRepaymentsDetails::where('loan_id', '=', $loanId)->orderBy('month', 'DESC')->first();
+  @$repaymentDetails=LoanRepaymentsDetails::where('loan_id', '=', $loanId)->orderBy('month', 'DESC')->first();
 
-        $first=Carbon::parse($input['date']);
-        $second=Carbon::parse($repaymentDetails->date);
-        $odays = $first->diffInDays($second);
-       // echo "<br>";
-       // echo $odays."=Days<br>";
+  $first=Carbon::parse($input['date']);
+  $second=Carbon::parse($repaymentDetails->date);
+  $odays = $first->diffInDays($second);
+  $interestdue2 = ( $odays * $repaymentDetails->loanOutstanding * $interest )/36500 ; 
+  round($interestdue2,2)."=interest due<br>";
+  $tdsAmt2 = ( $input['tds'] * $interestdue2 ) / 100 ; 
+  $netInterest2 =  $interestdue2 - $tdsAmt2 ;  
+  $penalInterest2 =  ( $repaymentDetails->arrears * $repaymentMaster->penalRate * $odays ) / 36500 ; 
+  /* (36852.45 * 10  * 30) / 36500  */
+  if($penalInterest2 < 0 ){
+    $penalInterest2 = 0;
+  }
+  $monthMorotorium = $repaymentDetails->month;
+  if( $monthMorotorium < $input['moratorium']){
+   $principleDue2 =0;
+   @$cumulativeDisbursement2 =$repaymentDetails->cumulativeDisbursement + $input['additionalAmtDibursed'] . "Cummilatigve Interest";
+   @$loanOutstanding2 = $repaymentDetails->loanOutstanding +  $netInterest2 - $input['receipt'] + $penalInterest2 + $input['additionalAmtDibursed'];
+ }else{
+  //echo "cumulativeDisbursement is Zero now";
 
-        $interestdue2 = ( $odays * $repaymentDetails->loanOutstanding * $interest )/36500 ; 
-         round($interestdue2,2)."=interest due<br>";
+      if($repaymentDetails->principalDue > 1) {
+         echo $principleDue2 = $repaymentDetails->principalDue;
+      }else{
+          echo @$cumulativeDisbursement2=0; 
+            echo $principleDue2 = $repaymentDetails->cumulativeDisbursement / ( $input['tenor'] - $input['moratorium'] );
+      }
 
-        $tdsAmt2 = ( $input['tds'] * $interestdue2 ) / 100 ; 
-        //echo $tdsAmt2."=tds Amt2<br>";
-        $netInterest2 =  $interestdue2 - $tdsAmt2 ;  
-        //echo $netInterest2."=net Interest2<br>";
-       // echo $repaymentMaster->penalRate."=Penal Rate<br>";
-        $penalInterest2 =  ( $repaymentDetails->arrears * $repaymentMaster->penalRate * $odays ) / 36500 ; 
-        /* (36852.45 * 10  * 30) / 36500  */
-        if($penalInterest2 < 0 ){
-          $penalInterest2 = 0;
-        }
+  @$loanOutstanding2 = $repaymentDetails->loanOutstanding +  $netInterest2 - $input['receipt'] + $penalInterest2 + $input['additionalAmtDibursed'];
 
-      
-/*        echo $repaymentDetails->arrears."Last arreas <br>";
-        echo $penalInterest2."=penal Interest2<br>";*/
-        //  die();
-        $monthMorotorium=$repaymentDetails->month;
-        if( $monthMorotorium < $input['moratorium']){
-         $principleDue2 =0;
-        // echo "Morotorum Ongoing";
-       }else{
-         $principleDue2 = $input['principal'] / ( $input['tenor'] - $input['moratorium'] );
-       //  echo "Morotorum complete P Due is";
-          $principleDue2;
-       }
-      // die();
-      // echo $principleDue2."=penal Interest2<br>";
+        //   $setDisable = 'disabled';
+}
 
-     /*  echo $repaymentDetails->principalDue."last principleDue2<br>";
-       echo  $repaymentDetails->arrears;
-       echo "<br> interestdue2==";
-       echo round($interestdue2,2);
-       echo "<br> principleDue2==";
-       echo round($principleDue2,2);
-       
-       echo "<br> tdsAmt2==";
-       echo round($tdsAmt2,2);
-       echo "<br>";
-       echo "<br> penalInterest2==";
-       echo round($penalInterest2,2);
-       echo "<br>";
-       echo "<br> penalInterest2==";
-       echo round($penalInterest2,2);
-       echo "<br>";*/
-         $netAmountDue2 =  ( round($interestdue2,2) + round($principleDue2,2) - round($tdsAmt2,2) + round($penalInterest2,2) );
-       //echo $netAmountDue2 =  ( round($interestdue2,2) + $principleDue2 - round($tdsAmt2,2) + round($penalInterest2,2) + round($repaymentDetails->arrears,2) );
+ //die();
+ /*  echo "<pre>";
+   print_r( $repaymentDetails);
+   echo "</pre>";
+   echo "<pre>";
+   print_r($input);
+   echo "</pre>";*/
+//echo      $principleDue2 = $repaymentDetails->cumulativeDisbursement / ( $input['tenor'] - $input['moratorium'] );
+  // die();
+   $netAmountDue2 =  ( round($interestdue2,2) + round($principleDue2,2) - round($tdsAmt2,2) + round($penalInterest2,2) );
+   $totalDue2 =   $netAmountDue2 + $repaymentDetails->arrears; 
+   $arrears2 =   $totalDue2 - $input['receipt']; 
+   $cumIntEarned2 = round($penalInterest2,2) + round($interestdue2,2);
+        // $loanOutstanding2 = round($repaymentDetails->loanOutstanding,2) - round($principleDue2,2) - ( $input['receipt'] - round($netAmountDue2,2) +   @$input['additionalAmtDibursed']);
 
-     //  die();
-       //echo $netAmountDue2."=netAmount Due2<br>";
-       $totalDue2 =   $netAmountDue2 + $repaymentDetails->arrears; 
-      // echo $totalDue2."=total Due2<br>";
-       $arrears2 =   $totalDue2 - $input['receipt']; 
-      // echo $arrears2."=arrears2<br>";
-       $cumIntEarned2 = round($penalInterest2,2) + round($interestdue2,2);
-      // echo $cumIntEarned2."=cum Int Earned2<br>";
-      // echo $repaymentDetails->loanOutstanding."Last Outsting <br>";
-       $loanOutstanding2 = round($repaymentDetails->loanOutstanding,2) - round($principleDue2,2) - ( $input['receipt'] - round($netAmountDue2,2) +   @$input['additionalAmtDibursed']);
-     //  echo $loanOutstanding2."=loanOutstanding2<br>";
-       $loanOutstanding = $input['principal'] - $principleDue - ( $input['receipt'] - $totalDue );
-       //die();
-       $second = LoanRepaymentsDetails::updateOrCreate(['id' => $loanId], [
+   @$loanOutstanding2 = $repaymentDetails->loanOutstanding +  $netInterest2 - $input['receipt'] + $penalInterest2 + $input['additionalAmtDibursed'];
+
+
+   $loanOutstanding2;
+
+   
+   $second = LoanRepaymentsDetails::updateOrCreate(['id' => $loanId], [
        //$deatilsData =array (
+     'loan_id' => $loanId,
+     'date' => @$input['date'],
+     'noOfDays' => @$odays,
+     'month'=>$repaymentDetails->month+1,
+     'chequeNo' => @$input['chequeNo'],
+     'cumulativeDisbursement' => @$cumulativeDisbursement2,
+     'loanOutstanding' => round(@$loanOutstanding2),
 
-         'loan_id' => $loanId,
-         'date' => @$input['date'],
-         'noOfDays' => @$odays,
-         'month'=>$repaymentDetails->month+1,
-         'chequeNo' => @$input['chequeNo'],
-         'loanOutstanding' => round(@$loanOutstanding2),
+     'intersetDue' => round(@$interestdue2),
+     'principalDue' => round(@$principleDue2),
+     'tds' => round(@$tdsAmt2),
+     'netInterest' => round(@$netInterest2),
+     'netAmountDue' => @$netAmountDue2,
+     'totalDue' => round(@$totalDue2),
+     'receipt' => round(@$input['receipt']),
+     'arrears' => round(@$arrears2,2),
+     'penalInterest' => round(@$penalInterest2),
+     'cumIntEarned' => round(@$cumIntEarned2)
+   ]);
 
-         'intersetDue' => round(@$interestdue2),
-         'principalDue' => round(@$principleDue2),
-         'tds' => round(@$tdsAmt2),
-         'netInterest' => round(@$netInterest2),
-         'netAmountDue' => @$netAmountDue2,
-         'totalDue' => round(@$totalDue2),
-         'receipt' => round(@$input['receipt']),
-         'arrears' => round(@$arrears2,2),
-         'penalInterest' => round(@$penalInterest2),
-         'cumIntEarned' => round(@$cumIntEarned2)
-       ]);
-    
 
       // die();
     /*
@@ -9532,7 +9716,7 @@ public function getRepayment($param1 = null, $param2 = null, $param3 = null, $pa
     */
 
   }
- return back();
+  return back();
 
   $validator = Validator::make($fieldsArr, $rulesArr, $messagesArr);
   if ($validator->fails()) {
@@ -9552,18 +9736,18 @@ public function getRepayment($param1 = null, $param2 = null, $param3 = null, $pa
      return Redirect::to($redirectUrl)->with('message', 'Loan Repayment has beed successfully saved');
    }
 
-public function getDeleteMappings($id)
-    {
-     
+   public function getDeleteMappings($id)
+   {
+
     //  DB::table('loans_repayment_details')->where('loan_id', '=', $loanId)->delete();
       //die();
-        $loanDetailsId = LoanRepaymentsDetails::find($id);
-        $loanDetailsId->delete();
-        session()->flash('flash_message','Deleted successfully!');
-        return Redirect::back();
-    }
+    $loanDetailsId = LoanRepaymentsDetails::find($id);
+    $loanDetailsId->delete();
+    session()->flash('flash_message','Deleted successfully!');
+    return Redirect::back();
+  }
 
 
- }
+}
 
 

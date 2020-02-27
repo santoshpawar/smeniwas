@@ -53,6 +53,7 @@ Route::get('loans/praposal/uploaddoc/{endUseList?}/{loanType?}/{amount?}/{loanTe
 Route::get('loans/praposal/approver/{endUseList?}/{loanType?}/{amount?}/{loanTenure?}/{companySharePledged?}/{bscNscCode?}/{loanId?}', 'Loans\LoansController@getApprover');
 																																														
 Route::get('loans/praposal/repayment/{endUseList?}/{loanType?}/{amount?}/{loanTenure?}/{companySharePledged?}/{bscNscCode?}/{loanId?}', 'Loans\LoansController@getRepayment');
+Route::get('loans/praposal/repaymentDashboard/{endUseList?}/{loanType?}/{amount?}/{loanTenure?}/{companySharePledged?}/{bscNscCode?}/{loanId?}', 'Loans\LoansController@getRepaymentDashboard');
 
 Route::get('loans/praposal/loancomment/{endUseList?}/{loanType?}/{amount?}/{loanTenure?}/{companySharePledged?}/{bscNscCode?}/{loanId?}', 'Loans\LoansController@getLoancomment');
 
